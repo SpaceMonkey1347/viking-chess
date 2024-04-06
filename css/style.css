@@ -1,0 +1,58 @@
+html, body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#tafl-wrapper {
+    height: 550px;
+    width: 550px;
+    border: 25px solid #996633;
+}
+
+#tafl-board {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background: url("../assets/pieces/Tafl-Board-Borderless.svg");
+    background-size: 100% 100%, auto;
+    background-repeat:no-repeat;
+    background-position:center center;
+}
+
+.attacker {
+    background: url("../assets/pieces/Attacker.svg");
+    background-size: 80% 80%, auto;
+}
+
+.defender {
+    background: url("../assets/pieces/Defender.svg");
+    background-size: 80% 80%, auto;
+}
+
+.king {
+    background: url("../assets/pieces/King.svg");
+    background-size: 80% 80%, auto;
+}
+
+.move-dest {
+    background: url("../assets/pieces/Move-Dest.svg");
+    background-size: 40% 40%, auto;
+    opacity: 0.5;
+}
+
+.move-dest:hover {
+    background-color: brown;
+}
+
+.attacker, .defender, .king, .move-dest {
+    position: absolute;
+    transform: translate(200%, 0%);
+    margin: auto;
+    height: calc(100% / 11);
+    width: calc(100% / 11);
+    background-repeat:no-repeat;
+    background-position:center center;
+}
