@@ -44,15 +44,30 @@ html, body {
 }
 
 .move-dest:hover {
-    background-color: brown;
+    background-color: green;
 }
 
-.attacker, .defender, .king, .move-dest {
+.start-square {
+    background-color: yellow;
+    opacity: 0.3;
+}
+
+.end-square {
+    background-color: yellow;
+    opacity: 0.3;
+}
+
+.attacker, .defender, .king, .move-dest, .start-square, .end-square {
     position: absolute;
-    transform: translate(200%, 0%);
     margin: auto;
     height: calc(100% / 11);
     width: calc(100% / 11);
     background-repeat:no-repeat;
     background-position:center center;
+    z-index: 5;
 }
+
+.start-square, .end-square {
+    z-index: 1;
+}
+
