@@ -46,6 +46,7 @@ let turn = white
 
 const rows = 11
 const cols = 11
+const size = 80
 
 // internal board
 const board = [
@@ -89,7 +90,7 @@ function encode_sqaure(row, col) {
 }
 
 function decode_sqaure(square) {
-    return [Math.floor(square / rows),square % cols]
+    return [Math.floor(square / rows), square % cols]
 }
 
 // legal moves for a piece
@@ -101,33 +102,33 @@ function legal_moves(square) {
     // vertical
     for (let i = row + 1; i < rows; i++) {
         const cur_square = encode_sqaure(i, col)
-        if (legal_move(square, cur_square)) {
+        if (is_legal_move(square, cur_square)) {
             moves.push(encode_sqaure(i, col))
         }
     }
     for (let i = row - 1; i >= 0; i--) {
         const cur_square = encode_sqaure(i, col)
-        if (legal_move(square, cur_square)) {
+        if (is_legal_move(square, cur_square)) {
             moves.push(encode_sqaure(i, col))
         }
     }
     // horizontal
     for (let j = col + 1; j < cols; j++) {
         const cur_square = encode_sqaure(row, j)
-        if (legal_move(square, cur_square)) {
+        if (is_legal_move(square, cur_square)) {
             moves.push(encode_sqaure(row, j))
         }
     }
     for (let j = col - 1; j >= 0; j--) {
         const cur_square = encode_sqaure(row, j)
-        if (legal_move(square, cur_square)) {
+        if (is_legal_move(square, cur_square)) {
             moves.push(encode_sqaure(row, j))
         }
     }
     return moves
 }
 
-function legal_move(start, end, debug = false) {
+function is_legal_move(start, end, debug = false) {
 
     const [start_row, start_col] = decode_sqaure(start)
     const [end_row, end_col] = decode_sqaure(end)
@@ -180,7 +181,7 @@ function legal_move(start, end, debug = false) {
     const top_adj = (cell) => cell - rows < 0
     const left_adj = (cell) => cell % cols == 0
     const right_adj = (cell) => cell % cols == cols - 1
-    const bottom_adj = (cell) => cell + rows > rows * cols - 1
+    const bottom_adj = (cell) => cell + rows > size
     const _9_o_clock = row_diff == 0 ?
         (cell) => bottom_adj(cell) :
         (cell) => left_adj(cell)
@@ -191,11 +192,10 @@ function legal_move(start, end, debug = false) {
         (cell) => top_adj(cell) || bottom_adj(cell) :
         (cell) => left_adj(cell) || right_adj(cell)
 
-
     // ensure start <= end
     const [start_i, end_i] = dir > 0 ? [start + next_cell, end] : [end, start]
 
-    for (let i = start_i; i != start && i <= end_i; i+=next_cell) {
+    for (let i = start_i; i != start && i <= end_i; i += next_cell) {
         const [cur_row, cur_col] = decode_sqaure(i)
         // ensure path is clear
         if (board[cur_row][cur_col] != e) {
@@ -213,9 +213,9 @@ function legal_move(start, end, debug = false) {
             const [r_adj_row, r_adj_col] = decode_sqaure(_9_o_clock_cell)
             right_piece = board[r_adj_row][r_adj_col]
             if (debug) {
-                console.log('left:', left_piece)
-                console.log('right:', right_piece)
-                console.log(enemies.includes(left_piece) && enemies.includes(right_piece))
+                // console.log('left:', left_piece)
+                // console.log('right:', right_piece)
+                // console.log(enemies.includes(left_piece) && enemies.includes(right_piece))
             }
             if (enemies.includes(left_piece) && enemies.includes(right_piece)) {
                 if (i == end) {
@@ -224,10 +224,8 @@ function legal_move(start, end, debug = false) {
             }
         }
 
-
         // left or top depending on direction
         if (debug) {
-
             // console.log(_3_o_clock_cell, _9_o_clock_cell)
             if (_3_o_clock(i)) {
                 // console.log('edge on left')
@@ -235,11 +233,168 @@ function legal_move(start, end, debug = false) {
             if (_9_o_clock(i)) {
                 // console.log('edge on right')
             }
-
         }
 
     }
     return true
+}
+
+function capture(square) {
+    const [row, col] = decode_sqaure(square)
+    const piece = board[row][col]
+    const adj_squares = adjacent_squares(square)
+    const enemy_pieces = []
+    const ally_pieces = []
+    if (piece == a) {
+        enemy_pieces.push(d, k)
+        ally_pieces.push(a)
+    } else if (piece == d || piece == k) {
+        enemy_pieces.push(a)
+        ally_pieces.push(d, k)
+    }
+    // check if sorrounding eneimes are adjacent to other allies
+    for (dir in adj_squares) {
+        const cur_square = adj_squares[dir]
+        const [cur_row, cur_col] = decode_sqaure(cur_square)
+        const cur_piece = board[cur_row][cur_col]
+        console.log(cur_piece)
+        const cur_adj_squares = adjacent_squares(cur_square)
+
+        if (!enemy_pieces.includes(cur_piece)) continue
+
+        if (cur_adj_squares.left != undefined && cur_adj_squares.right != undefined) {
+            const [left_row, left_col] = decode_sqaure(cur_adj_squares.left)
+            const [right_row, right_col] = decode_sqaure(cur_adj_squares.right)
+            const left_piece = board[left_row][left_col]
+            const right_piece = board[right_row][right_col]
+            if (ally_pieces.includes(left_piece) && ally_pieces.includes(right_piece)) {
+                console.log(cur_square, ally_pieces, enemy_pieces)
+                return cur_square
+            }
+        }
+        if (cur_adj_squares.top != undefined && cur_adj_squares.bottom != undefined) {
+            const [top_row, top_col] = decode_sqaure(cur_adj_squares.top)
+            const [bottom_row, bottom_col] = decode_sqaure(cur_adj_squares.bottom)
+            const top_piece = board[top_row][top_col]
+            const bottom_piece = board[bottom_row][bottom_col]
+            if (ally_pieces.includes(top_piece) && ally_pieces.includes(bottom_piece)) {
+                console.log(cur_square, ally_pieces, enemy_pieces)
+                return cur_square
+            }
+        }
+    }
+}
+
+function is_win() {
+    if (turn == white) {
+        let black_has_legal_moves = false
+        let king_captured = true
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+
+                const piece = board[i][j]
+                if (piece == a) continue
+                const square = encode_sqaure(i,j)
+
+                turn = black
+                const legal = legal_moves(square)
+                turn = white
+
+                if (legal.length != 0) {
+                    black_has_legal_moves = true
+                }
+
+                if (piece == k) {
+                    king_captured = false
+                }
+
+            }
+        }
+        if (king_captured) return true
+        if (!black_has_legal_moves) return true
+
+    } else if (turn == black) {
+
+        for (let i = 0; i < corners.length; i++) {
+            const square = corners[i];
+            const [row, col] = decode_sqaure(square)
+            if (board[row][col] == k) {
+                return true
+            }
+        }
+        let white_has_legal_moves = false
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                const piece = board[i][j]
+                if (piece == d || piece == k) continue
+
+                const square = encode_sqaure(i,j)
+                turn = white
+                const legal = legal_moves(square)
+                turn = black
+
+                if (legal.length != 0) {
+                    white_has_legal_moves = true
+                }
+            }
+        }
+        if (!white_has_legal_moves) {
+            return true
+        }
+    }
+    return false
+}
+
+function in_board(square) {
+    return square >= 0 && square < size
+}
+
+function touching_edge(square) {
+    const top    = () => square - rows < 0
+    const left   = () => square % cols == 0
+    const right  = () => square % cols == cols - 1
+    const bottom = () => square + rows > size
+    return top() || left() || right() || bottom()
+}
+
+function is_adjacent(square, target) {
+    if (!in_board(square) || !in_board(target)) return false
+    const above = () => square - target == cols    && square - rows >  0
+    const left  = () => square - target == 1       && square % cols != 0
+    const right = () => square - target == -1      && square % cols != cols - 1
+    const below = () => square - target == -(cols) && square + rows <  size
+    // console.log(above(), left(), right(), below())
+    return above() || left() || right() || below()
+}
+
+function adjacent_squares(square) {
+    const valid = {}
+    const adjacent = {
+        top: square - rows,
+        left: square - 1,
+        right: square + 1,
+        bottom: square + rows,
+    }
+    for (s in adjacent) {
+        const q = adjacent[s]
+        if (in_board(q) && is_adjacent(square, q)) {
+            valid[s] = q
+        }
+    }
+    // console.log(valid)
+    return valid
+}
+
+function adjacent_pieces(square) {
+    const squares = adjacent_squares(square)
+    const pieces = []
+    squares.forEach(s => {
+        const [row, col] = decode_sqaure(s)
+        pieces.push(board[row][col])
+    });
+    return pieces
 }
 
 // DOM manipulation
@@ -274,17 +429,33 @@ function move_piece(elem) {
     board[end_row][end_col] = piece
 }
 
+function remove_piece(square) {
+    const rect = boardEl.getBoundingClientRect()
+    const board_height = rect.height
+    const board_width = rect.width
+    const cell_height = board_height / rows
+    const cell_width = board_width / cols
+    const x0 = rect.left
+    const y0 = rect.top
+    const [row, col] = decode_sqaure(square)
+    const x_pos = col * cell_width + col/2 + x0
+    const y_pos = row * cell_height + row/2 + y0
+    const piece_el = document.elementFromPoint(x_pos, y_pos)
+    piece_el.remove()
+    board[row][col] = e
+}
+
 function highlight_move() {
     const [start_row, start_col] = decode_sqaure(start_square)
     const [end_row, end_col] = decode_sqaure(end_square)
     const startEl = create_piece(b, start_row, start_col)
     const endEl = create_piece(f, end_row, end_col)
-    // console.log(start_row, start_col, end_row, end_col)
-    boardEl.appendChild(startEl)
-    boardEl.appendChild(endEl)
     // prevent from being event.target
     startEl.style.pointerEvents = "none"
     endEl.style.pointerEvents = "none"
+    // console.log(start_row, start_col, end_row, end_col)
+    boardEl.appendChild(startEl)
+    boardEl.appendChild(endEl)
 }
 
 function remove_highlight_move() {
@@ -292,7 +463,7 @@ function remove_highlight_move() {
     elems.forEach(element => {
         element.remove()
     });
-    
+
 }
 
 function draw_legal_moves(moves) {
@@ -381,9 +552,16 @@ function drag_move(event) {
 }
 
 function play_move(start, end) {
-    if (legal_move(start, end, true)) {
+    if (is_legal_move(start, end, true)) {
         move_piece(selectedPiece)
+        const captured = capture(end)
+        if (captured) {
+            remove_piece(captured)
+        }
         remove_highlight_move()
+        if (is_win()) {
+            console.log("WIN!!!!")
+        }
         highlight_move()
         if (turn) {
             turn = black
@@ -391,6 +569,7 @@ function play_move(start, end) {
             turn = white
         }
     }
+    // reset selected squares
     start_square = -1
     end_square = -1
 }
