@@ -46,7 +46,8 @@ let turn = white
 
 const rows = 11
 const cols = 11
-const size = 80
+// rows * cols - 1
+const size = 120
 
 // internal board
 const board = [
@@ -257,7 +258,6 @@ function capture(square) {
         const cur_square = adj_squares[dir]
         const [cur_row, cur_col] = decode_sqaure(cur_square)
         const cur_piece = board[cur_row][cur_col]
-        console.log(cur_piece)
         const cur_adj_squares = adjacent_squares(cur_square)
 
         if (!enemy_pieces.includes(cur_piece)) continue
@@ -268,7 +268,6 @@ function capture(square) {
             const left_piece = board[left_row][left_col]
             const right_piece = board[right_row][right_col]
             if (ally_pieces.includes(left_piece) && ally_pieces.includes(right_piece)) {
-                console.log(cur_square, ally_pieces, enemy_pieces)
                 return cur_square
             }
         }
@@ -278,11 +277,41 @@ function capture(square) {
             const top_piece = board[top_row][top_col]
             const bottom_piece = board[bottom_row][bottom_col]
             if (ally_pieces.includes(top_piece) && ally_pieces.includes(bottom_piece)) {
-                console.log(cur_square, ally_pieces, enemy_pieces)
                 return cur_square
             }
         }
     }
+}
+
+
+function in_board(square) {
+    return square >= 0 && square < size
+}
+
+function is_adjacent(square, target) {
+    if (!in_board(square) || !in_board(target)) return false
+    const above = () => { return square - target == cols    && square - rows >  0 }
+    const left  = () => { return square - target == 1       && square % cols != 0 }
+    const right = () => { return square - target == -1      && square % cols != cols - 1 }
+    const below = () => { return square - target == -(cols) && square + rows <  size }
+    return above() || left() || right() || below()
+}
+
+function adjacent_squares(square) {
+    const valid = {}
+    const adjacent = {
+        top: square - rows,
+        left: square - 1,
+        right: square + 1,
+        bottom: square + rows,
+    }
+    for (s in adjacent) {
+        const q = adjacent[s]
+        if (is_adjacent(square, q)) {
+            valid[s] = q
+        }
+    }
+    return valid
 }
 
 function is_win() {
@@ -345,56 +374,6 @@ function is_win() {
         }
     }
     return false
-}
-
-function in_board(square) {
-    return square >= 0 && square < size
-}
-
-function touching_edge(square) {
-    const top    = () => square - rows < 0
-    const left   = () => square % cols == 0
-    const right  = () => square % cols == cols - 1
-    const bottom = () => square + rows > size
-    return top() || left() || right() || bottom()
-}
-
-function is_adjacent(square, target) {
-    if (!in_board(square) || !in_board(target)) return false
-    const above = () => square - target == cols    && square - rows >  0
-    const left  = () => square - target == 1       && square % cols != 0
-    const right = () => square - target == -1      && square % cols != cols - 1
-    const below = () => square - target == -(cols) && square + rows <  size
-    // console.log(above(), left(), right(), below())
-    return above() || left() || right() || below()
-}
-
-function adjacent_squares(square) {
-    const valid = {}
-    const adjacent = {
-        top: square - rows,
-        left: square - 1,
-        right: square + 1,
-        bottom: square + rows,
-    }
-    for (s in adjacent) {
-        const q = adjacent[s]
-        if (in_board(q) && is_adjacent(square, q)) {
-            valid[s] = q
-        }
-    }
-    // console.log(valid)
-    return valid
-}
-
-function adjacent_pieces(square) {
-    const squares = adjacent_squares(square)
-    const pieces = []
-    squares.forEach(s => {
-        const [row, col] = decode_sqaure(s)
-        pieces.push(board[row][col])
-    });
-    return pieces
 }
 
 // DOM manipulation
@@ -559,10 +538,10 @@ function play_move(start, end) {
             remove_piece(captured)
         }
         remove_highlight_move()
-        if (is_win()) {
-            console.log("WIN!!!!")
-        }
         highlight_move()
+        if (is_win()) {
+            alert("You Win!")
+        }
         if (turn) {
             turn = black
         } else {
