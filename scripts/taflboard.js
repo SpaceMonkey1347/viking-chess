@@ -1,4 +1,3 @@
-
 const boardEl = document.getElementById('tafl-board')
 let selectedPiece
 
@@ -36,6 +35,7 @@ const css_elements = {
     [f]: 'end-square',
 }
 
+const GhostEl = create_piece(g, 0, 0)
 
 // side to move
 const white = 1
@@ -288,66 +288,79 @@ function get_captured(square) {
 
 }
 
-function is_win() {
-    if (turn == white) {
-        let black_has_legal_moves = false
-        let king_captured = true
+function is_win(player) {
 
-        for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
+    // win condition flags
+    let stalemate_flag = true
+    let king_captured_flag = true
 
-                const piece = board[i][j]
-                if (piece == a) continue
-                const square = encode_sqaure(i,j)
+    const enemy_pieces = player == white ? [d, k] : [a] 
 
-                turn = black
-                const legal = legal_moves(square)
-                turn = white
-
-                if (legal.length != 0) {
-                    black_has_legal_moves = true
-                }
-
-                if (piece == k) {
-                    king_captured = false
-                }
-
-            }
-        }
-        if (king_captured) return true
-        if (!black_has_legal_moves) return true
-
-    } else if (turn == black) {
-
+    if (player == black) {
+        king_captured_flag = false
+        // check if king castled
         for (let i = 0; i < corners.length; i++) {
-            const square = corners[i];
-            const [row, col] = decode_sqaure(square)
-            if (board[row][col] == k) {
+            const piece = get_piece(corners[i])
+            if (piece == k) {
                 return true
             }
         }
-        let white_has_legal_moves = false
+    }
 
-        for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-                const piece = board[i][j]
-                if (piece == d || piece == k) continue
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
 
-                const square = encode_sqaure(i,j)
-                turn = white
-                const legal = legal_moves(square)
-                turn = black
+            const piece = board[row][col]
 
-                if (legal.length != 0) {
-                    white_has_legal_moves = true
+            if (player == white) {
+                // is king on board
+                if (piece == k) {
+                    king_captured_flag = false
                 }
             }
-        }
-        if (!white_has_legal_moves) {
-            return true
+
+            // check opponent's legal moves
+            if (enemy_pieces.includes(piece)) {
+                turn = !turn
+                const square = encode_sqaure(row,col)
+                const legal = legal_moves(square)
+                turn = !turn
+                if (legal.length > 0) {
+                    stalemate_flag = false
+                }
+            }
+
+            // break early if flags are tripped
+            if ((player == black || !king_captured_flag) && !stalemate_flag) {
+                break
+            }
+
         }
     }
+
+    if (king_captured_flag) {
+        return true
+    }
+
+    if (stalemate_flag) {
+        return true
+    }
+
     return false
+}
+
+// TODO: move_stack
+function add_move(move) {
+}
+function undo_move() {
+}
+function first_move() {
+}
+function last_move() {
+}
+function next_move() {
+}
+function prev_move() {
 }
 
 // DOM manipulation
@@ -417,6 +430,13 @@ function remove_highlight_move() {
     });
 }
 
+// TODO: low priority
+function draw_highlight_capture() {
+}
+function remove_highlight_capture() {
+}
+
+
 function draw_legal_moves(moves) {
     for (let i = 0; i < moves.length; i++) {
         const [row, col] = decode_sqaure(moves[i])
@@ -434,9 +454,59 @@ function remove_legal_moves() {
     });
 }
 
+function select_square(event) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const board_height = rect.height
+    const board_width = rect.width
+    const mouse_x = event.clientX - rect.left
+    const mouse_y = event.clientY - rect.top
+    const cell_width = board_width / cols
+    const cell_height = board_height / rows
+    const cell_row = Math.floor(mouse_y / cell_height)
+    const cell_col = Math.floor(mouse_x / cell_width)
+    return encode_sqaure(cell_row, cell_col)
+}
+
+function draw_ghost(event, piece) {
+    GhostEl.style.pointerEvents = 'none'
+    GhostEl.id = 'ghost'
+    // GhostEl.style.display = 'none'
+    GhostEl.className = css_elements[piece]
+    const rect = event.currentTarget.getBoundingClientRect()
+    const cell_width = rect.width / cols
+    const cell_height = rect.height / rows
+    const mouse_x = event.clientX - rect.left
+    const mouse_y = event.clientY - rect.top
+    const width_offset = cell_width / 2
+    const height_offset = cell_height / 2
+    GhostEl.style.transform = `translate(${mouse_x - width_offset}px,${mouse_y - height_offset}px)`
+    boardEl.appendChild(GhostEl)
+}
+
+function move_ghost(event) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const cell_width = rect.width / cols
+    const cell_height = rect.height / rows
+    const mouse_x = event.clientX - rect.left
+    const mouse_y = event.clientY - rect.top
+    const width_offset = cell_width / 2
+    const height_offset = cell_height / 2
+
+    GhostEl.style.transform = `translate(${mouse_x - width_offset}px,${mouse_y - height_offset}px)`
+}
+
+function hide_ghost() {
+    selectedPiece.style.opacity = "1"
+    GhostEl.remove()
+}
+
 // event listeners
 
+let mouse_is_down = false
+
 function click_move(event) {
+
+    mouse_is_down = true
 
     // prevent dragging images
     event.preventDefault()
@@ -444,6 +514,12 @@ function click_move(event) {
     const cur_square = select_square(event)
     const [cur_row, cur_col] = decode_sqaure(cur_square)
     const cur_piece = board[cur_row][cur_col]
+
+    const ally_pieces = turn == white ? [a] : [d, k]
+
+    if (ally_pieces.includes(cur_piece)) {
+        draw_ghost(event, cur_piece)
+    }
 
     // first select, draw legal moves and select piece element
     if (move_start == -1) {
@@ -489,6 +565,12 @@ function click_move(event) {
 
 function drag_move(event) {
 
+    mouse_is_down = false
+
+    if (selectedPiece) {
+        hide_ghost()
+    }
+
     // ensure move
     if (move_start == -1) return
 
@@ -502,6 +584,25 @@ function drag_move(event) {
     }
 }
 
+function mouse_move(event) {
+
+    if (!mouse_is_down) return
+
+    const cur_piece = get_piece(move_start)
+
+    const allowed = turn == white ? [a] : [d, k]
+
+    if (!allowed.includes(cur_piece)) return
+
+    selectedPiece.style.opacity = "0.7"
+    move_ghost(event)
+}
+
+function doc_mouse_up() {
+    mouse_is_down = false
+    hide_ghost()
+}
+
 function play_move(start_square, end_square) {
 
     if (legal_move(start_square, end_square)) {
@@ -512,7 +613,7 @@ function play_move(start_square, end_square) {
         }
         remove_highlight_move()
         draw_highlight_move()
-        if (is_win()) {
+        if (is_win(turn)) {
             alert("You Win!")
         }
         if (turn) {
@@ -526,19 +627,6 @@ function play_move(start_square, end_square) {
     move_end = -1
 }
 
-function select_square(event) {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const board_height = rect.height
-    const board_width = rect.width
-    const mouse_x = event.clientX - rect.left
-    const mouse_y = event.clientY - rect.top
-    const cell_width = board_width / cols
-    const cell_height = board_height / rows
-    const cell_row = Math.floor(mouse_y / cell_height)
-    const cell_col = Math.floor(mouse_x / cell_width)
-    return encode_sqaure(cell_row, cell_col)
-}
-
 // initialize board
 
 function init_board() {
@@ -546,6 +634,10 @@ function init_board() {
     boardEl.addEventListener('mousedown', click_move)
 
     boardEl.addEventListener('mouseup', drag_move)
+
+    boardEl.addEventListener('mousemove', mouse_move)
+
+    document.addEventListener('mouseup', doc_mouse_up)
 
     draw_board()
 }
