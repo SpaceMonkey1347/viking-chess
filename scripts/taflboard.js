@@ -6,9 +6,9 @@ let selectedPiece
 // empty
 const e = 0
 // attacker
-const a = 1
+const d = 1
 // defender
-const d = 2
+const a = 2
 // king
 const k = 3
 
@@ -26,8 +26,8 @@ const f = 7
 // piece/element encodings to corresponding css classes
 const css_elements = {
     [e]: '',
-    [a]: 'attacker',
-    [d]: 'defender',
+    [d]: 'attacker',
+    [a]: 'defender',
     [k]: 'king',
     [m]: 'move-dest',
     [g]: 'ghost',
@@ -49,28 +49,142 @@ const cols = 11
 const size = rows * cols - 1
 
 // internal board
+
+// const board = [
+//     [e, e, e, a, a, a, a, a, e, e, e],
+//     [e, e, e, e, e, a, e, e, e, e, e],
+//     [e, e, e, e, e, e, e, e, e, e, e],
+//     [a, e, e, e, e, d, e, e, e, e, a],
+//     [a, e, e, e, d, d, d, e, e, e, a],
+//     [a, a, e, d, d, k, d, d, e, a, a],
+//     [a, e, e, e, d, d, d, e, e, e, a],
+//     [a, e, e, e, e, d, e, e, e, e, a],
+//     [e, e, e, e, e, e, e, e, e, e, e],
+//     [e, e, e, e, e, a, e, e, e, e, e],
+//     [e, e, e, a, a, a, a, a, e, e, e],
+// ]
+
+// const board = [
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0,0,0,0]
+// ]
+
+
+// edge king capture test
+
 const board = [
-    [e, e, e, a, a, a, a, a, e, e, e],
-    [e, e, e, e, e, a, e, e, e, e, e],
-    [e, e, e, e, e, e, e, e, e, e, e],
-    [a, e, e, e, e, d, e, e, e, e, a],
-    [a, e, e, e, d, d, d, e, e, e, a],
-    [a, a, e, d, d, k, d, d, e, a, a],
-    [a, e, e, e, d, d, d, e, e, e, a],
-    [a, e, e, e, e, d, e, e, e, e, a],
-    [e, e, e, e, e, e, e, e, e, e, e],
-    [e, e, e, e, e, a, e, e, e, e, e],
-    [e, e, e, a, a, a, a, a, e, e, e],
+    [0,0,0,0,1,1,1,1,0,0,0],
+    [1,0,0,0,0,0,0,0,0,0,0],
+    [3,0,1,0,0,0,0,0,0,0,0],
+    [1,0,0,0,0,2,0,0,0,0,1],
+    [1,0,0,0,2,2,2,0,0,0,1],
+    [1,1,0,2,2,0,2,2,0,1,1],
+    [1,0,0,0,2,2,2,0,0,0,1],
+    [1,0,0,0,0,2,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,0,0,0,0,0],
+    [0,0,0,1,1,1,1,1,0,0,0]
 ]
 
-const castles = [
+// edge king capture test 2
+
+// const board = [
+//     [0,0,0,0,1,1,1,1,0,0,0],
+//     [0,1,0,0,0,0,0,0,0,0,0],
+//     [3,1,0,0,0,0,0,0,0,0,0],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,1,0,2,2,0,2,2,0,1,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,1,0,0,0,0,0],
+//     [0,0,0,1,1,1,1,1,0,0,0]
+// ]
+
+// edge king capture test 3 (self capture)
+
+// const board = [
+//     [0,0,0,0,1,1,1,1,0,0,0],
+//     [1,0,0,0,0,0,0,0,0,0,0],
+//     [3,0,2,0,0,0,0,0,0,0,0],
+//     [1,1,0,0,0,0,0,0,0,0,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,1,0,2,2,0,2,2,0,1,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,1,0,0,0,0,0],
+//     [0,0,0,1,1,1,1,1,0,0,0]
+// ]
+
+// center king capture test
+
+// const board = [
+//     [0,0,0,0,1,1,1,1,0,0,0],
+//     [0,1,0,0,0,0,0,0,0,0,0],
+//     [1,3,1,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,2,0,0,0,0,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,1,0,2,2,0,2,2,0,1,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,1,0,0,0,0,0],
+//     [0,0,0,1,1,1,1,1,0,0,0]
+// ]
+
+// center king capture test 2
+
+// const board = [
+//     [0,0,0,0,1,1,1,1,0,0,0],
+//     [0,1,0,0,0,0,0,0,0,0,0],
+//     [1,3,1,0,0,0,0,0,0,0,0],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [0,2,0,0,0,2,2,0,0,0,1],
+//     [1,1,0,2,2,0,2,2,0,1,1],
+//     [1,0,0,0,2,2,2,0,0,0,1],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,1,0,0,0,0,0],
+//     [0,0,0,1,1,1,1,1,0,0,0]
+// ]
+
+// attacker capture with king test
+
+// const board = [
+//     [0,0,0,0,1,1,1,1,0,0,0],
+//     [0,3,0,0,0,0,0,0,0,0,0],
+//     [1,0,1,0,0,0,0,0,0,0,0],
+//     [0,1,0,0,0,2,0,0,0,0,1],
+//     [1,2,0,0,0,2,2,0,0,0,1],
+//     [1,0,0,2,2,0,2,2,0,1,1],
+//     [1,1,0,0,2,2,2,0,0,0,1],
+//     [1,0,0,0,0,2,0,0,0,0,1],
+//     [0,0,0,0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,1,0,0,0,0,0],
+//     [0,0,0,1,1,1,1,1,0,0,0]
+// ]
+
+const center = encode_sqaure(Math.floor(rows/2), Math.floor(cols/2))
+
+const towers = [
     // corners
     encode_sqaure(0,0),
     encode_sqaure(0, cols-1),
     encode_sqaure(rows-1, 0),
     encode_sqaure(rows-1, cols-1),
     // center
-    encode_sqaure(Math.floor(rows/2), Math.floor(cols/2))
+    center
 ]
 
 const corners = [
@@ -174,7 +288,7 @@ function legal_move(start_square, end_square) {
     const row_diff = end_row - start_row
     const col_diff = end_col - start_col
     const piece = board[start_row][start_col]
-    const enemy_pieces = turn == white ? [d, k] : [a]
+    const enemy_pieces = turn == white ? [a, k] : [d]
 
     // ensure move
     if (start_square == end_square) return false
@@ -193,12 +307,16 @@ function legal_move(start_square, end_square) {
     }
 
     // ensure only king can enter a castle
-    if (castles.includes(end_square) && piece != k) {
+    if (towers.includes(end_square) && piece != k) {
         return false
     }
 
     if (row_diff == 0) {
-        if (vertical_sandwich(end_square)) return false
+        if (vertical_sandwich(end_square, enemy_pieces)) {
+            if (piece != k) {
+                return false
+            }
+        }
         for (let left = start_square - 1; left >= end_square; left--) {
             if (path_obstructed(left)) return false
         }
@@ -206,7 +324,11 @@ function legal_move(start_square, end_square) {
             if (path_obstructed(right)) return false
         }
     } else if (col_diff == 0) {
-        if (horizontal_sandwich(end_square)) return false
+        if (horizontal_sandwich(end_square, enemy_pieces)) {
+            if (piece != k) {
+                return false
+            }
+        }
         for (let up = start_square - cols; up >= end_square; up-=cols) {
             if (path_obstructed(up)) return false
         }
@@ -220,72 +342,70 @@ function legal_move(start_square, end_square) {
 
     function path_obstructed(square) {
         const [row, col] = decode_sqaure(square)
-        return board[row][col] != e
+        const in_tower = (square == center)
+        const is_empty = board[row][col] != e
+        return (in_tower || is_empty)
     }
 
-    function vertical_sandwich(square) {
-        const [row_up, col_up] = decode_sqaure(square - cols)
-        const [row_down, col_down] = decode_sqaure(square + cols)
-        const piece_up = in_board(square - cols) ? board[row_up][col_up] : e
-        const piece_down = in_board(square + cols) ? board[row_down][col_down] : e
-        // ensure piece isn't "sandwiched" between enemies
-        if (enemy_pieces.includes(piece_up) && enemy_pieces.includes(piece_down)) return true
-        return false
-    }
-
-    function horizontal_sandwich(square) {
-        const [row_left, col_left] = decode_sqaure(square - 1)
-        const [row_right, col_right] = decode_sqaure(square + 1)
-        const piece_left = in_board(square - 1) ? board[row_left][col_left] : e
-        const piece_right = in_board(square + 1) ? board[row_right][col_right] : e
-        // ensure piece isn't "sandwiched" between enemies
-        if (enemy_pieces.includes(piece_left) && enemy_pieces.includes(piece_right)) return true
-        return false
-    }
 }
 
-function get_captured(square) {
+function vertical_sandwich(square, enemy_pieces) {
+    const piece_up   = is_adjacent(square - cols, square) ? get_piece(square - cols) : e
+    const piece_down = is_adjacent(square + cols, square) ? get_piece(square + cols) : e
+    if (enemy_pieces.includes(piece_up) && enemy_pieces.includes(piece_down)) return true
+    return false
+}
 
-    const piece = get_piece(square)
-    const ally_pieces  = piece == a ? [a] : [d, k]
-    const enemy_pieces = piece == a ? [d, k] : [a]
+function horizontal_sandwich(square, enemy_pieces) {
+    const piece_left  = is_adjacent(square - 1, square) ? get_piece(square - 1) : e
+    const piece_right = is_adjacent(square + 1, square) ? get_piece(square + 1) : e
+    if (enemy_pieces.includes(piece_left) && enemy_pieces.includes(piece_right)) return true
+    return false
+}
 
-    const left_square  = square - 1
-    const right_square = square + 1
-    const up_square    = square - cols
-    const down_square  = square + cols
-
-    const far_left_square  = square - 2
-    const far_right_square = square + 2
-    const far_up_square    = square - cols * 2
-    const far_down_square  = square + cols * 2
-
-    if (piece == e) return
-
-    if (in_board(far_left_square)) {
-        const left_piece = get_piece(left_square)
-        const far_left_piece = get_piece(far_left_square)
-        if (ally_pieces.includes(far_left_piece) && enemy_pieces.includes(left_piece)) return left_square
+function get_captures(end_square) {
+    const captures = []
+    const ally_pieces  = turn == white ? [d] : [a, k]
+    const enemy_pieces = turn == white ? [a, k] : [d]
+    const adj_squares = adjacent_squares(end_square)
+    
+    // return adjacent square in a direction
+    const step = (square, dir) => {
+        let next_square
+        if      (dir == 'top')    next_square = square - rows
+        else if (dir == 'left')   next_square = square - 1
+        else if (dir == 'right')  next_square = square + 1
+        else if (dir == 'bottom') next_square = square + rows
+        if (is_adjacent(square, next_square)) return next_square
     }
 
-    if (in_board(far_right_square)) {
-        const right_piece = get_piece(right_square)
-        const far_right_piece = get_piece(far_right_square)
-        if (ally_pieces.includes(far_right_piece) && enemy_pieces.includes(right_piece)) return right_square
+    check_adj_squares:
+    for (dir in adj_squares) {
+        const cur_square = adj_squares[dir]
+        const cur_piece = get_piece(cur_square)
+        // skip empty
+        if (!cur_piece) continue
+        // skip ally
+        if (!enemy_pieces.includes(cur_piece)) continue
+        if (cur_piece == k) {
+            // check king capture
+            const kings_neighbours = adjacent_squares(cur_square)
+            for (square in kings_neighbours) {
+                if (get_piece(kings_neighbours[square]) != d) {
+                    continue check_adj_squares
+                }
+            }
+            captures.push(cur_square)
+            continue
+        }
+        // take another step
+        const next_square = step(cur_square, dir)
+        const next_piece = get_piece(next_square)
+        // add piece to captures if next piece is yours
+        if (ally_pieces.includes(next_piece)) captures.push(cur_square)
     }
 
-    if (in_board(far_up_square)) {
-        const up_piece = get_piece(up_square)
-        const far_up_piece = get_piece(far_up_square)
-        if (ally_pieces.includes(far_up_piece) && enemy_pieces.includes(up_piece)) return up_square
-    }
-
-    if (in_board(far_down_square)) {
-        const down_piece = get_piece(down_square)
-        const far_down_piece = get_piece(far_down_square)
-        if (ally_pieces.includes(far_down_piece) && enemy_pieces.includes(down_piece)) return down_square
-    }
-
+    return captures
 }
 
 function is_win(player) {
@@ -294,7 +414,7 @@ function is_win(player) {
     let stalemate_flag = true
     let king_captured_flag = true
 
-    const enemy_pieces = player == white ? [d, k] : [a] 
+    const enemy_pieces = player == white ? [a, k] : [d] 
 
     if (player == black) {
         king_captured_flag = false
@@ -339,6 +459,7 @@ function is_win(player) {
     }
 
     if (king_captured_flag) {
+        console.log('king captured')
         return true
     }
 
@@ -393,6 +514,21 @@ function move_piece(elem) {
     const piece = board[start_row][start_col]
     board[start_row][start_col] = e
     board[end_row][end_col] = piece
+}
+
+function piece_from_square(square) {
+    const rect = boardEl.getBoundingClientRect()
+    const board_height = rect.height
+    const board_width = rect.width
+    const cell_height = board_height / rows
+    const cell_width = board_width / cols
+    const x0 = rect.left
+    const y0 = rect.top
+    const [row, col] = decode_sqaure(square)
+    const x_pos = col * cell_width + col/2 + x0
+    const y_pos = row * cell_height + row/2 + y0
+    const piece_el = document.elementFromPoint(x_pos, y_pos)
+    return piece_el
 }
 
 function remove_piece(square) {
@@ -455,7 +591,7 @@ function remove_legal_moves() {
 }
 
 function select_square(event) {
-    const rect = event.currentTarget.getBoundingClientRect()
+    const rect = boardEl.getBoundingClientRect()
     const board_height = rect.height
     const board_width = rect.width
     const mouse_x = event.clientX - rect.left
@@ -496,7 +632,9 @@ function move_ghost(event) {
 }
 
 function hide_ghost() {
-    selectedPiece.style.opacity = "1"
+    if (selectedPiece) {
+        selectedPiece.style.opacity = "1"
+    }
     GhostEl.remove()
 }
 
@@ -515,7 +653,7 @@ function click_move(event) {
     const [cur_row, cur_col] = decode_sqaure(cur_square)
     const cur_piece = board[cur_row][cur_col]
 
-    const ally_pieces = turn == white ? [a] : [d, k]
+    const ally_pieces = turn == white ? [d] : [a, k]
 
     if (ally_pieces.includes(cur_piece)) {
         draw_ghost(event, cur_piece)
@@ -590,7 +728,7 @@ function mouse_move(event) {
 
     const cur_piece = get_piece(move_start)
 
-    const allowed = turn == white ? [a] : [d, k]
+    const allowed = turn == white ? [d] : [a, k]
 
     if (!allowed.includes(cur_piece)) return
 
@@ -603,13 +741,23 @@ function doc_mouse_up() {
     hide_ghost()
 }
 
-function play_move(start_square, end_square) {
+function play_move(start_square, end_square, opt_event) {
 
     if (legal_move(start_square, end_square)) {
+
+        move_start = start_square
+        move_end = end_square
+
+        // TODO: remove later
+        if (opt_event) {
+            selectedPiece = piece_from_square(move_start)
+        }
+        outputEl.innerHTML = `${start_square}, ${end_square}`
+
         move_piece(selectedPiece)
-        const captured_piece = get_captured(end_square)
-        if (captured_piece) {
-            remove_piece(captured_piece)
+        const captured = get_captures(end_square)
+        for (const piece in captured) {
+            remove_piece(captured[piece])
         }
         remove_highlight_move()
         draw_highlight_move()
@@ -644,3 +792,26 @@ function init_board() {
 
 init_board()
 
+// temp multiplayer
+
+const inputEl = document.querySelector("input")
+
+inputEl.addEventListener("keydown", decode_move)
+outputEl = document.querySelector("#move_output")
+
+function decode_move(event) {
+    if (event.key != "Enter") return
+    let str = event.currentTarget.value
+    event.currentTarget.value = ""
+    let move = (str.split(','))
+    for (str in move) {
+        move[str] = move[str].replace(/\s/g, '');
+        move[str] = Number(move[str])
+    }
+    if (move.length > 2) return
+    play_move(move[0], move[1], event)
+}
+
+function encode_move(move) {
+    outputEl.innerHTML = move
+}
