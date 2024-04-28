@@ -4,19 +4,78 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title></title>
+        <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
         <link href="css/style.css" rel="stylesheet">
         <script src="scripts/taflboard.js" defer></script>
     </head>
     <body>
+        <nav>
+            <div>Placeholder Navbar</div>
+        </nav>
 
-        <div id="tafl-wrapper">
-            <div id="tafl-board" class="tafl">
-                <div id="ghost"></div>
+        <main>
+
+            <div id="tafl-grid-wrapper">
+                <div id="tafl-wrapper">
+                    <div id="tafl-board"></div>
+                </div>
             </div>
-            <input type="text" name="" id="">
-            <div id="move_output" style="font-size:xx-large;">
+
+            <div id="moves-wrapper">
+
+                <div id="move-btn-container">
+                    <button type="button" id="first-move" class="move-btn"><<</button>
+                    <button type="button" id="prev-move" class="move-btn"><</button>
+                    <button type="button" id="next-move" class="move-btn">></button>
+                    <button type="button" id="last-move" class="move-btn">>></button>
+                </div>
+
+                <table id="moves">
+                    <!-- Placehoder moves -->
+                    <tr>
+                        <td>0</td>
+                        <td>place</td>
+                        <td>holder</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>e1e3</td>
+                        <td>d6d3</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>f2f3</td>
+                        <td>f4d4</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>d1d3</td>
+                        <td>e5c5</td>
+                    </tr>
+                </table>
             </div>
-        </div>
+
+
+            <div id='settings' class="col">
+                <h3>Settings</h3>
+                <label class="switch">
+                    <input type="checkbox" checked id="king_center_passthrough_flag" name="king_center_passthrough_flag">
+                    <span></span>
+                    <label for="king_center_passthrough_flag">king center passthrough</label>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="enter_self_capture_flag">
+                    <span></span>
+                    <label for="enter_self_capture_flag">enter self capture</label>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" checked id="tower_capture_flag">
+                    <span></span>
+                    <label for="tower_capture_flag">tower capture</label>
+                </label>
+            </div>
+
+        </main>
 
     </body>
 </html>

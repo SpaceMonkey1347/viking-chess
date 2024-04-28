@@ -1,19 +1,83 @@
+
 html, body {
     margin: 0;
-    height: 100vh;
+    height: 100%;
+    background-color: #161512;
+    color: white;
+}
+
+nav, footer {
+    height: 56px;
+    background-color: #282520;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    height: 80vh;
+    padding: 20px;
+}
+
+#moves-wrapper {
+    border: 1px solid;
+    width: 250px;
+}
+
+#move-btn-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+}
+
+.move-btn {
+    background-color: darkgrey;
+    border-radius: 0px;
+}
+
+#moves {
+    border-spacing: 0px;
+    width: 100%;
+}
+
+#moves tr:nth-child(2n) td {
+    background-color: grey;
+}
+
+#settings {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    border: 1px solid;
+    width: 25%;
+    display: none;
+}
+
+/* NOTE: Tafl Board */
+
+#tafl-grid-wrapper {
 }
 
 #tafl-wrapper {
-    height: 550px;
-    width: 550px;
+    position: relative;
+    box-sizing: border-box;
+
+    width: 100%;
+    max-width: 80vh;
+    float: right;
     border: 25px solid #996633;
+    /* TODO: dynamic board border */
+    /* background: #996633; */
+    /* padding: calc(25 / 600 * 100%); */
+}
+
+#tafl-wrapper::after {
+    content: "";
+    display: block;
+    /* padding is calculated as percent of parent's width */
+    padding-bottom: 100%;
 }
 
 #tafl-board {
-    position: relative;
+    box-sizing: border-box;
+    position: absolute;
     height: 100%;
     width: 100%;
     background: url("../assets/pieces/Tafl-Board-Borderless.svg");
@@ -75,3 +139,24 @@ html, body {
     z-index: 2;
 }
 
+
+@media only screen and (max-width: 600px) {
+    main {
+        grid-template-columns: none;
+        grid-template-rows: 1fr 1fr;
+    }
+    #tafl-wrapper {
+        float: none;
+    }
+    #moves-wrapper {
+        /* display: none; */
+        width: 100%;
+    }
+
+}
+
+@media only screen and (max-width: 412px) {
+    main {
+        grid-template-rows: 1fr 2fr;
+    }
+}
