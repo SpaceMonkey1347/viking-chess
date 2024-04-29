@@ -25,6 +25,8 @@ let connected_capture_flag = false
 
 const board_el = document.getElementById('tafl-board')
 
+const moves_el = document.getElementById('moves')
+
 // store user-selected piece
 let selected_piece_el
 
@@ -70,7 +72,7 @@ const ghost_el = create_piece(g, 0, 0)
 
 // internal board
 
-const board = [
+let board = [
     [e, e, e, a, a, a, a, a, e, e, e],
     [e, e, e, e, e, a, e, e, e, e, e],
     [e, e, e, e, e, e, e, e, e, e, e],
@@ -116,7 +118,15 @@ let turn = white
 
 let move_start = -1, move_end = -1
 
-const move_stack = []
+// const move_stack = []
+// move stack
+var move_stack = {
+    moves: new Array(1000),
+    count: 0,
+    size: 0
+}
+
+
 
 // board helper functions
 
@@ -220,17 +230,53 @@ function decode_move(move) {
 // console.log('algebraic', test_alg) 
 // console.log('reversed', test_reverse)
 
-function add_move(move) {
+function push_move(move) {
+    move_stack.moves[move_stack.count] = {
+        move: move,
+        position: {
+            board: JSON.parse(JSON.stringify(board)),
+            turn: turn,
+        }
+    }
+    move_stack.count++
+    move_stack.size++
+
+    // add move to table
+    const tbody = moves_el.getElementsByTagName('tbody')[0]
+    if (turn == white) {
+        const new_row = document.createElement('tr')
+        new_row.innerHTML = `<td>${Math.ceil(move_stack.count / 2)}</td><td>${move}</td>`
+        tbody.appendChild(new_row)
+    } else {
+        const move_rows = tbody.getElementsByTagName('tr')
+        const last_row = move_rows[move_rows.length - 1]
+        const new_move = document.createElement('td')
+        new_move.innerHTML = move
+        last_row.appendChild(new_move)
+    }
 }
+
 function undo_move() {
+    if (move_stack.count < 1) return
+    move_stack.count--
+    board = move_stack.moves[move_stack.count].position.board
+    turn = move_stack.moves[move_stack.count].position.turn
+    console.table(move_stack.moves[move_stack.count].position.board)
+    console.log(move_stack.moves[move_stack.count].position.turn)
+    draw_board()
 }
+
 function first_move() {
+
 }
 function last_move() {
 }
 function next_move() {
 }
 function prev_move() {
+}
+function goto_move(move) {
+
 }
 
 // game logic
@@ -758,13 +804,12 @@ function play_move(start_square, end_square) {
         move_start = start_square
         move_end = end_square
 
-        // TODO: remove later
-
         move_piece(selected_piece_el)
         const captured = get_captures(end_square)
         for (const piece in captured) {
             remove_piece(captured[piece])
         }
+        push_move(encode_move(move_start, move_end))
         remove_highlight_move()
         draw_highlight_move()
         if (is_win(turn)) {

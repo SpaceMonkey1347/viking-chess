@@ -25,33 +25,14 @@
 
                 <div id="move-btn-container">
                     <button type="button" id="first-move" class="move-btn"><<</button>
-                    <button type="button" id="prev-move" class="move-btn"><</button>
+                    <button type="button" id="prev-move" class="move-btn" onclick="undo_move()"><</button>
                     <button type="button" id="next-move" class="move-btn">></button>
                     <button type="button" id="last-move" class="move-btn">>></button>
                 </div>
 
                 <table id="moves">
-                    <!-- Placehoder moves -->
-                    <tr>
-                        <td>0</td>
-                        <td>place</td>
-                        <td>holder</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>e1e3</td>
-                        <td>d6d3</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>f2f3</td>
-                        <td>f4d4</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>d1d3</td>
-                        <td>e5c5</td>
-                    </tr>
+                    <tbody>
+                    </tbody>
                 </table>
             </div>
 
