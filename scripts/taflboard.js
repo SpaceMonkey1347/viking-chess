@@ -111,19 +111,18 @@ const corners = [
 
 // moves
 
-const white = 1
-const black = 0
+const white = 0
+const black = 1
 
 let turn = white
 
 let move_start = -1, move_end = -1
 
-// const move_stack = []
 // move stack
 var move_stack = {
     moves: new Array(1000),
     count: 0,
-    size: 0
+    size: 0,
 }
 
 
@@ -223,53 +222,52 @@ function decode_move(move) {
     return moves
 }
 
-// let test_move = [10, 2]
-// let test_alg = encode_move(test_move[0], test_move[1])
-// let test_reverse = decode_move(test_alg)
-// console.log('test move', test_move, decode_sqaure(test_move[0]), decode_sqaure(test_move[1]))
-// console.log('algebraic', test_alg) 
-// console.log('reversed', test_reverse)
-
 function push_move(move) {
+
     move_stack.moves[move_stack.count] = {
         move: move,
-        position: {
-            board: JSON.parse(JSON.stringify(board)),
-            turn: turn,
-        }
+        turn: turn,
+        board: JSON.parse(JSON.stringify(board)),
     }
     move_stack.count++
     move_stack.size++
 
-    // add move to table
-    const tbody = moves_el.getElementsByTagName('tbody')[0]
-    if (turn == white) {
-        const new_row = document.createElement('tr')
-        new_row.innerHTML = `<td>${Math.ceil(move_stack.count / 2)}</td><td>${move}</td>`
-        tbody.appendChild(new_row)
-    } else {
-        const move_rows = tbody.getElementsByTagName('tr')
-        const last_row = move_rows[move_rows.length - 1]
-        const new_move = document.createElement('td')
-        new_move.innerHTML = move
-        last_row.appendChild(new_move)
-    }
+    push_move_table(move)
 }
 
 function undo_move() {
-    if (move_stack.count < 1) return
+    if (move_stack.count < 2) return
     move_stack.count--
-    board = move_stack.moves[move_stack.count].position.board
-    turn = move_stack.moves[move_stack.count].position.turn
-    console.table(move_stack.moves[move_stack.count].position.board)
-    console.log(move_stack.moves[move_stack.count].position.turn)
+    board = JSON.parse(JSON.stringify(move_stack.moves[move_stack.count - 1].board))
+    turn = move_stack.moves[move_stack.count - 1].turn
+
+    draw_board()
+}
+
+function redo_move() {
+    if (move_stack.count > move_stack.size - 1) return
+    board = JSON.parse(JSON.stringify(move_stack.moves[move_stack.count].board))
+    turn = move_stack.moves[move_stack.count].turn
+    move_stack.count++
+
     draw_board()
 }
 
 function first_move() {
+    move_stack.count = 1
+    board = JSON.parse(JSON.stringify(move_stack.moves[move_stack.count - 1].board))
+    turn = move_stack.moves[move_stack.count - 1].turn
 
+    draw_board()
 }
+
 function last_move() {
+    move_stack.count = move_stack.size
+
+    board = JSON.parse(JSON.stringify(move_stack.moves[move_stack.count - 1].board))
+    turn = move_stack.moves[move_stack.count - 1].turn
+
+    draw_board()
 }
 function next_move() {
 }
@@ -504,10 +502,10 @@ function is_win(player) {
 
             // check opponent's legal moves
             if (enemy_pieces.includes(piece)) {
-                turn = !turn
+                turn ^= 1
                 const square = encode_sqaure(row,col)
                 const legal = piece_legal_moves(square)
-                turn = !turn
+                turn ^= 1
                 if (legal.length > 0) {
                     stalemate_flag = false
                 }
@@ -620,6 +618,26 @@ function remove_highlight_move() {
     elems.forEach(element => {
         element.remove()
     });
+}
+
+// show move in move history
+function push_move_table(move) {
+    // skip inital position
+    if (move_stack.size == 1) return
+
+    // add move to table
+    const tbody = moves_el.getElementsByTagName('tbody')[0]
+    if (turn == black) {
+        const new_row = document.createElement('tr')
+        new_row.innerHTML = `<td>${Math.ceil(move_stack.count / 2)}</td><td>${move}</td>`
+        tbody.appendChild(new_row)
+    } else {
+        const move_rows = tbody.getElementsByTagName('tr')
+        const last_row = move_rows[move_rows.length - 1]
+        const new_move = document.createElement('td')
+        new_move.innerHTML = move
+        last_row.appendChild(new_move)
+    }
 }
 
 // TODO: low priority
@@ -804,22 +822,23 @@ function play_move(start_square, end_square) {
         move_start = start_square
         move_end = end_square
 
+        // first move
+        if (move_stack.size == 0) push_move(encode_move(move_start, move_end))
+
         move_piece(selected_piece_el)
         const captured = get_captures(end_square)
         for (const piece in captured) {
             remove_piece(captured[piece])
         }
-        push_move(encode_move(move_start, move_end))
+
+
         remove_highlight_move()
         draw_highlight_move()
         if (is_win(turn)) {
             alert("You Win!")
         }
-        if (turn) {
-            turn = black
-        } else {
-            turn = white
-        }
+        turn ^= 1
+        push_move(encode_move(move_start, move_end))
     }
     // reset selected squares
     move_start = -1
