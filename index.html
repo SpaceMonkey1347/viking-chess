@@ -6,7 +6,9 @@
         <title></title>
         <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
         <link href="./css/style.css" rel="stylesheet">
+        <!-- <script src="./scripts/taflboard.js" defer></script> -->
         <script src="./scripts/taflboard.js" defer></script>
+        <script src="./scripts/ai.js" defer></script>
     </head>
     <body>
         <nav>
@@ -24,37 +26,49 @@
             <div id="moves-wrapper">
 
                 <div id="move-btn-container">
+
+                    <div class="settings-toggle-wrapper">
+
+                        <input type="checkbox" name="settings-toggle" value="" id="settings-toggle">
+                        <label for="settings-toggle">
+                            <img src="assets/icons/gear-icon.svg" alt="Settings" id="settings-icon">
+                        </label>
+
+                        <div id='settings' class="col">
+                            <label class="switch">
+                                <input type="checkbox" checked id="king_center_passthrough_flag" class="rule-btn">
+                                <span></span>
+                                <label for="king_center_passthrough_flag">king center passthrough</label>
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="enter_self_capture_flag" class="rule-btn">
+                                <span></span>
+                                <label for="enter_self_capture_flag">enter self capture</label>
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" checked id="corner_capture_flag" class="rule-btn">
+                                <span></span>
+                                <label for="corner_capture_flag">tower capture</label>
+                            </label>
+                        </div>
+
+                    </div>
+
                     <button type="button" id="first-move" class="move-btn" onclick="first_move()"><<</button>
                     <button type="button" id="prev-move" class="move-btn" onclick="undo_move()"><</button>
                     <button type="button" id="next-move" class="move-btn" onclick="redo_move()">></button>
                     <button type="button" id="last-move" class="move-btn" onclick="last_move()">>></button>
+
                 </div>
 
                 <table id="moves">
                     <tbody>
                     </tbody>
                 </table>
+
             </div>
 
 
-            <div id='settings' class="col">
-                <h3>Settings</h3>
-                <label class="switch">
-                    <input type="checkbox" checked id="king_center_passthrough_flag" name="king_center_passthrough_flag">
-                    <span></span>
-                    <label for="king_center_passthrough_flag">king center passthrough</label>
-                </label>
-                <label class="switch">
-                    <input type="checkbox" id="enter_self_capture_flag">
-                    <span></span>
-                    <label for="enter_self_capture_flag">enter self capture</label>
-                </label>
-                <label class="switch">
-                    <input type="checkbox" checked id="tower_capture_flag">
-                    <span></span>
-                    <label for="tower_capture_flag">tower capture</label>
-                </label>
-            </div>
 
         </main>
 

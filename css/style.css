@@ -25,7 +25,7 @@ main {
 
 #move-btn-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); 
+    grid-template-columns: repeat(5, 1fr); 
 }
 
 .move-btn {
@@ -42,12 +42,43 @@ main {
     background-color: grey;
 }
 
+#settings-toggle-wrapper {
+    position: relative;
+}
+
+#settings-toggle {
+    display: none;
+}
+
+#settings-icon {
+    height: 40px;
+    width: 40px;
+    background-size: 100% 100%, auto;
+    background-repeat:no-repeat;
+    background-position:center center;
+}
+
 #settings {
-    display: flex;
+    display: none;
+    position: absolute;
     flex-direction: column;
     border: 1px solid;
-    width: 25%;
-    display: none;
+    /* width: 25%; */
+    padding: 10px;
+    /* display: none; */
+    background-color: black;
+}
+
+#settings-toggle:checked ~ #settings {
+    display: flex;
+}
+
+
+label {
+    user-select: none; /* chrome and Opera */
+    -moz-user-select: none; /* Firefox */
+    -webkit-text-select: none; /* IOS Safari */
+    -webkit-user-select: none; /* Safari */
 }
 
 /* NOTE: Tafl Board */
@@ -86,6 +117,9 @@ main {
     background-position:center center;
 }
 
+/* WARN: the following class names must match corresponding values in the css_elements object in taflboard.js */
+/* 'attacker', 'defender', 'king', 'move-dest', 'ghost', 'start-square', 'end-square', 'capture-square' */
+
 .attacker {
     background: url("../assets/pieces/Attacker.svg");
     background-size: 80% 80%, auto;
@@ -111,13 +145,13 @@ main {
     background-color: green;
 }
 
-.start-square {
+.start-square, .end-square {
     background-color: yellow;
     opacity: 0.3;
 }
 
-.end-square {
-    background-color: yellow;
+.capture-square {
+    background-color: red;
     opacity: 0.3;
 }
 
@@ -125,7 +159,7 @@ main {
     z-index: 4;
 }
 
-.attacker, .defender, .king, .move-dest, .start-square, .end-square {
+.attacker, .defender, .king, .move-dest, .start-square, .end-square, .capture-square {
     position: absolute;
     margin: auto;
     height: calc(100% / 11);
