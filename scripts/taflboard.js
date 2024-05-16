@@ -1,8 +1,9 @@
 
-// NOTE: Rule Flags, feel free to change
 
-
+// TODO: encapsulate board
 // function tafl_board() {
+
+// rule flags
 
 const rule_flags = {
     king_center_passthrough_flag: true,
@@ -38,7 +39,6 @@ const k = 3
 const m = 4
 // ghost
 const g = 5
-
 
 // highlight move
 
@@ -105,9 +105,14 @@ const corners = [
 
 // moves
 
-const white = 0
-const black = 1
+const white = 1
+const black = 0
 
+/**
+* which player's turn is it
+* white || black
+* @type Number
+*/
 let turn = white
 
 let move_start = -1, move_end = -1
@@ -120,18 +125,33 @@ var move_stack = {
     size: 0,
 }
 
-
-
 // board helper functions
 
+/**
+* @param {number} row
+* @param {number} col
+* @returns {number} square
+* @example
+* var square = encode_square(row, col)
+*/
 function encode_sqaure(row, col) {
     return row * rows + col
 }
 
+/**
+* @param {number} square
+* @returns {[number, number]} row, col
+* @example
+* var [row, col] = decode_square(square)
+*/
 function decode_sqaure(square) {
     return [Math.floor(square / rows), square % cols]
 }
 
+/**
+ * @param {number} square
+ * @returns boolean
+ */
 function in_board(square) {
     return square >= 0 && square <= size
 }
@@ -272,8 +292,65 @@ function goto_move(move) {
 
 // game logic
 
-// legal moves for a piece
-function piece_legal_moves(square) {
+/**
+ * player's legal moves in algebraic notation
+ */
+function legal_moves(side=turn, board_ref=board) {
+    const ally_pieces = side == white ? [a] : [d, k]
+    const moves = []
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            const square = encode_sqaure(row, col)
+            if (!ally_pieces.includes(board_ref[square])) { continue }
+            const piece_moves = piece_legal_moves(square, side, board_ref)
+            for (const move in piece_moves) {
+                moves.push(encode_move(square, piece_moves[move]))
+            }
+        }
+    }
+    return moves
+}
+
+
+/**
+ * player's legal moves as an object
+*/
+function legal_moves_obj(side=turn, board_ref=board) {
+    const ally_pieces = side == white ? [a] : [d, k]
+    const piece_moves = {}
+    piece_moves.pieces = {}
+    piece_moves.move_count = 0
+    piece_moves.capture_count = 0
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            const square = encode_sqaure(row, col)
+            if (!ally_pieces.includes(board_ref[square])) { continue }
+            const moves = piece_legal_moves(square, side, board_ref)
+            const moves_len = moves.length
+            const captures = []
+            for (const move in moves) {
+                const move_captures = get_captures(moves[move])
+                if (move_captures.length > 0) {
+                    captures.push(move_captures[0])
+                }
+            }
+            piece_moves.pieces[square] = {}
+            piece_moves.pieces[square].moves = moves
+            piece_moves.pieces[square].captures = captures
+            piece_moves.pieces[square].count = moves_len
+            piece_moves.move_count += moves_len
+            piece_moves.capture_count += captures.length
+        }
+    }
+    return piece_moves
+}
+
+/**
+ * legal moves for a piece
+ * @param {number} square
+ * @returns {number[]} moves
+ */
+function piece_legal_moves(square, side=turn, board_ref=board) {
     const moves = []
     const [row, col] = decode_sqaure(square)
     const cur_piece = board[square]
@@ -281,26 +358,26 @@ function piece_legal_moves(square) {
     // horizontal
     for (let j = col + 1; j < cols; j++) {
         const cur_square = encode_sqaure(row, j)
-        if (legal_move(square, cur_square)) {
+        if (legal_move(square, cur_square, side, board_ref)) {
             moves.push(encode_sqaure(row, j))
         }
     }
     for (let j = col - 1; j >= 0; j--) {
         const cur_square = encode_sqaure(row, j)
-        if (legal_move(square, cur_square)) {
+        if (legal_move(square, cur_square, side, board_ref)) {
             moves.push(encode_sqaure(row, j))
         }
     }
     // vertical
     for (let i = row + 1; i < rows; i++) {
         const cur_square = encode_sqaure(i, col)
-        if (legal_move(square, cur_square)) {
+        if (legal_move(square, cur_square, side, board_ref)) {
             moves.push(encode_sqaure(i, col))
         }
     }
     for (let i = row - 1; i >= 0; i--) {
         const cur_square = encode_sqaure(i, col)
-        if (legal_move(square, cur_square)) {
+        if (legal_move(square, cur_square, side, board_ref)) {
             moves.push(encode_sqaure(i, col))
         }
     }
@@ -308,15 +385,19 @@ function piece_legal_moves(square) {
 }
 
 
-// is move legal
-function legal_move(start_square, end_square, side) {
+/**
+ * is move legal
+ * @param {number} start_square
+ * @param {number} end_square
+ * @param {number} side
+*/
+function legal_move(start_square, end_square, side=turn, board_ref=board) {
 
     const [start_row, start_col] = decode_sqaure(start_square)
     const [end_row, end_col] = decode_sqaure(end_square)
     const row_diff = end_row - start_row
     const col_diff = end_col - start_col
-    const piece = board[start_square]
-    side = side ? side : turn
+    const piece = board_ref[start_square]
     const enemy_pieces = side == white ? [d, k] : [a]
     const diff = end_square - start_square
 
@@ -327,7 +408,7 @@ function legal_move(start_square, end_square, side) {
     if (enemy_pieces.includes(piece)) { return false }
 
     // ensure piece
-    if (board[start_square] == e) { return false }
+    if (board_ref[start_square] == e) { return false }
 
     // ensure orthaginal
     if (row_diff != 0 && col_diff != 0) { return false }
@@ -354,26 +435,27 @@ function legal_move(start_square, end_square, side) {
         const [row, col] = decode_sqaure(square)
         let in_tower = square == center
         if (rule_flags.king_center_passthrough_flag) {
-            in_tower &= board[start_square] != k
+            in_tower &= board_ref[start_square] != k
         }
-        const is_empty = board[square] != e
+        const is_empty = board_ref[square] != e
         return (in_tower || is_empty)
     }
 
     function self_capture(square, enemy_pieces, dir_incr) {
         if (rule_flags.enter_self_capture_flag) { return false }
-        if (board[square] == k) { return false }
-        const piece_before = is_adjacent(square, square - dir_incr) ? board[square - dir_incr] : e
-        const piece_after  = is_adjacent(square, square + dir_incr) ? board[square + dir_incr] : e
-        if (enemy_pieces.includes(piece_before) && enemy_pieces.includes(piece_after)) { return true }
+        if (board_ref[square] == k) { return false }
+        const piece_before = is_adjacent(square, square - dir_incr) ? board_ref[square - dir_incr] : e
+        const piece_after  = is_adjacent(square, square + dir_incr) ? board_ref[square + dir_incr] : e
+        const block_before = (enemy_pieces.includes(piece_before) || towers.includes(square - dir_incr))
+        const block_after = (enemy_pieces.includes(piece_after) || towers.includes(square + dir_incr))
+        if (block_before && block_after) { return true }
         return false
     }
 
 }
 
-function get_captures(end_square, side) {
+function get_captures(end_square, side=turn, board_ref=board) {
     const captures = []
-    side = side ? side : turn
     const ally_pieces  = side == white ? [a] : [d, k]
     const enemy_pieces = side == white ? [d, k] : [a]
     const adj_squares = adjacent_squares(end_square)
@@ -404,7 +486,7 @@ function get_captures(end_square, side) {
     check_adj_squares:
     for (dir in adj_squares) {
         const cur_square = adj_squares[dir]
-        const cur_piece = board[cur_square]
+        const cur_piece = board_ref[cur_square]
         // skip empty
         if (!cur_piece) continue
         // skip adjacent allies
@@ -413,7 +495,7 @@ function get_captures(end_square, side) {
             // check king capture
             const kings_neighbours = adjacent_squares(cur_square)
             for (square in kings_neighbours) {
-                if (board[kings_neighbours[square]] != a) {
+                if (board_ref[kings_neighbours[square]] != a) {
                     continue check_adj_squares
                 }
             }
@@ -422,7 +504,7 @@ function get_captures(end_square, side) {
         }
         // take another step
         const next_square = step(cur_square, dir)
-        const next_piece = board[next_square]
+        const next_piece = board_ref[next_square]
         if (rule_flags.corner_capture_flag) {
             if (corners.includes(next_square)) {
                 captures.push(cur_square)
@@ -438,19 +520,20 @@ function get_captures(end_square, side) {
     return captures
 }
 
-function is_win(player) {
+function is_win(side, board_ref) {
 
     // win condition flags
     let stalemate_flag = true
     let king_captured_flag = true
 
-    const enemy_pieces = player == white ? [d, k] : [a] 
+    side = Number(side)
+    const enemy_pieces = side == white ? [d, k] : [a] 
 
-    if (player == black) {
+    if (side == black) {
         king_captured_flag = false
         // check if king castled
         for (let i = 0; i < corners.length; i++) {
-            const piece = board[corners[i]]
+            const piece = board_ref[corners[i]]
             if (piece == k) {
                 return true
             }
@@ -461,9 +544,9 @@ function is_win(player) {
         for (let col = 0; col < cols; col++) {
 
             const square = encode_sqaure(row, col)
-            const piece = board[square]
+            const piece = board_ref[square]
 
-            if (player == white) {
+            if (side == white) {
                 // is king on board
                 if (piece == k) {
                     king_captured_flag = false
@@ -471,23 +554,26 @@ function is_win(player) {
             }
 
             // check opponent's legal moves
-            if (enemy_pieces.includes(piece)) {
-                turn ^= 1
+            if (enemy_pieces.includes(piece) && stalemate_flag) {
+                // turn ^= 1
                 const square = encode_sqaure(row,col)
-                const legal = piece_legal_moves(square)
-                turn ^= 1
+                const legal = piece_legal_moves(square, side^1, board_ref)
+                // turn ^= 1
+                // console.log('iswin moves', legal)
                 if (legal.length > 0) {
                     stalemate_flag = false
                 }
             }
 
             // break early if flags are tripped
-            if ((player == black || !king_captured_flag) && !stalemate_flag) {
+            if ((side == black || !king_captured_flag) && !stalemate_flag) {
                 break
             }
 
         }
     }
+
+    // console.log(king_captured_flag, stalemate_flag)
 
     if (king_captured_flag) {
         return true
@@ -529,12 +615,8 @@ function move_piece(elem) {
         console.warn("failed to move piece")
         return
     }
-    const [start_row, start_col] = decode_sqaure(move_start)
     const [end_row, end_col] = decode_sqaure(move_end)
     elem.style.transform = `translate(${100 * end_col}%,${100 * end_row}%)`
-    const piece = board[move_start]
-    board[move_start] = e
-    board[move_end] = piece
 }
 
 function piece_from_square(square) {
@@ -569,7 +651,6 @@ function remove_piece(square) {
         return
     }
     piece_el.remove()
-    board[square] = e
 }
 
 function draw_highlight_capture(captures) {
@@ -697,178 +778,5 @@ function hide_ghost() {
     ghost_el.remove()
 }
 
-// event listeners
-
-let mouse_is_down = false
-
-function click_move(event) {
-
-    mouse_is_down = true
-
-    // prevent dragging images
-    event.preventDefault()
-
-    const cur_square = select_square(event)
-
-    const cur_piece = board[cur_square]
-
-    const ally_pieces = turn == white ? [a] : [d, k]
-
-    if (ally_pieces.includes(cur_piece)) {
-        draw_ghost(event, cur_piece)
-    }
-
-    // first select, draw legal moves and select piece element
-    if (move_start == -1) {
-        // if empty cell, do nothing
-        if (cur_piece == e) { return }
-        // select starting square
-        move_start = cur_square
-        // refresh legal moves
-        remove_legal_moves()
-        // select piece element
-        selected_piece_el = event.target
-        draw_legal_moves(piece_legal_moves(move_start))
-        return
-    }
-
-    // double-click, refresh legal moves
-    if (move_start == cur_square) {
-        remove_legal_moves()
-        draw_legal_moves(piece_legal_moves(move_start))
-        return
-    }
-
-    // on click-move/dif square clicked
-    if (cur_square != move_start) {
-        // piece selected
-        if (cur_piece != e) {
-            move_start = cur_square
-            // refresh legal moves
-            remove_legal_moves()
-            // select piece element
-            selected_piece_el = event.target
-            draw_legal_moves(piece_legal_moves(move_start))
-            return
-        }
-        // empty square, click-move
-        move_end = cur_square
-        // don't show legal moves
-        remove_legal_moves()
-        play_move(move_start, move_end)
-    }
-
-}
-
-function drag_move(event) {
-
-    mouse_is_down = false
-
-    if (selected_piece_el) {
-        hide_ghost()
-    }
-
-    // ensure move
-    if (move_start == -1) { return }
-
-    const cur_square = select_square(event)
-
-    // drag, make move
-    if (cur_square != move_start) {
-        move_end = cur_square
-        play_move(move_start, move_end)
-        remove_legal_moves()
-    }
-}
-
-function mouse_move(event) {
-
-    if (!mouse_is_down) { return }
-
-    const cur_piece = board[move_start]
-
-    const allowed = turn == white ? [a] : [d, k]
-
-    if (!allowed.includes(cur_piece)) { return }
-
-    selected_piece_el.style.opacity = "0.7"
-    move_ghost(event)
-}
-
-function doc_mouse_up() {
-    mouse_is_down = false
-    hide_ghost()
-}
-
-function play_move(start_square, end_square) {
-
-    if (legal_move(start_square, end_square)) {
-
-        move_start = start_square
-        move_end = end_square
-
-        // first move
-        if (move_stack.size == 0) push_move(encode_move(move_start, move_end))
-
-        move_piece(selected_piece_el)
-        last_captures = get_captures(end_square)
-        for (const piece in last_captures) {
-            remove_piece(last_captures[piece])
-        }
-
-        // remove_highlight_move() and remove_highlight_caputure()
-        remove_all([s, f])
-        remove_all(c)
-
-        draw_highlight_move()
-        draw_highlight_capture(last_captures)
-        if (is_win(turn)) {
-            alert("You Win!")
-        }
-        turn ^= 1
-        push_move(encode_move(move_start, move_end))
-    }
-    // reset selected squares
-    move_start = -1
-    move_end = -1
-}
-
-// initialize everything
-
-function init() {
-
-    board_el.addEventListener('mousedown', click_move)
-
-    board_el.addEventListener('mouseup', drag_move)
-
-    board_el.addEventListener('mousemove', mouse_move)
-
-    document.addEventListener('mouseup', doc_mouse_up)
-
-    document.querySelectorAll('.rule-btn').forEach(btn => { btn.onclick = (event) => {
-        rule_flags[event.currentTarget.id] = event.currentTarget.checked
-    }})
-
-    draw_board()
-}
-
-init()
-
-// return {
-//
-//
-//     encode_sqaure: function() { encode_sqaure() },
-//
-//     piece_legal_moves: function() { piece_legal_moves() },
-//
-//     get_captures: function() { get_captures() },
-//
-//     /* init the board */
-//     init: function() { init() },
-//
-//     get_board: function() { get_board() }
-//
-// }
-// }
 
 
