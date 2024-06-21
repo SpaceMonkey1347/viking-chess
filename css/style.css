@@ -84,9 +84,50 @@ label {
 /* NOTE: Tafl Board */
 
 #tafl-grid-wrapper {
+    position: relative;
 }
 
-#tafl-wrapper {
+#files {
+    position: absolute;
+    display: flex;
+    top: -24px;
+    width: 100%;
+}
+
+#files > * {
+    flex-grow: 1;
+    text-align: center;
+}
+
+#ranks {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    left: -25px;
+    height: 100%;
+}
+
+#ranks > * {
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    flex-grow: 1;
+}
+
+/* #ranks::before { */
+/*     content: ""; */
+/*     height: 25px; */
+/*     width: 25px; */
+/* } */
+/**/
+/* #ranks::after { */
+/*     content: ""; */
+/*     height: 25px; */
+/*     width: 25px; */
+/* } */
+
+
+#tafl-border {
     position: relative;
     box-sizing: border-box;
 
@@ -99,7 +140,7 @@ label {
     /* padding: calc(25 / 600 * 100%); */
 }
 
-#tafl-wrapper::after {
+#tafl-border::after {
     content: "";
     display: block;
     /* padding is calculated as percent of parent's width */

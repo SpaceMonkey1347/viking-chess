@@ -9,6 +9,8 @@
         <!-- <script src="./scripts/taflboard.js" defer></script> -->
         <script src="./scripts/taflboard.js" defer></script>
         <script src="./scripts/ai.js" defer></script>
+        <script src="./scripts/render.js" defer></script>
+        <script src="./scripts/move_stack.js" defer></script>
         <script src="./scripts/main.js" defer></script>
     </head>
     <body>
@@ -19,9 +21,36 @@
         <main>
 
             <div id="tafl-grid-wrapper">
-                <div id="tafl-wrapper">
+                <div id="tafl-border">
                     <div id="tafl-board"></div>
+                    <div id="files">
+                        <div>A</div>
+                        <div>B</div>
+                        <div>C</div>
+                        <div>D</div>
+                        <div>E</div>
+                        <div>F</div>
+                        <div>G</div>
+                        <div>H</div>
+                        <div>I</div>
+                        <div>J</div>
+                        <div>K</div>
+                    </div>
+                    <div id="ranks">
+                        <div>1</div>
+                        <div>2</div>
+                        <div>3</div>
+                        <div>4</div>
+                        <div>5</div>
+                        <div>6</div>
+                        <div>7</div>
+                        <div>8</div>
+                        <div>9</div>
+                        <div>10</div>
+                        <div>11</div>
+                    </div>
                 </div>
+                <!-- <input type="text" name="move-input" value="d1d3" onclick="no_render_play_move"> -->
             </div>
 
             <div id="moves-wrapper">
@@ -37,19 +66,19 @@
 
                         <div id='settings' class="col">
                             <label class="switch">
-                                <input type="checkbox" checked id="king_center_passthrough_flag" class="rule-btn">
+                                <input type="checkbox" checked id="king_enter_thrown" class="rule-btn">
                                 <span></span>
-                                <label for="king_center_passthrough_flag">king center passthrough</label>
+                                <label for="king_enter_thrown">king enter thrown</label>
                             </label>
                             <label class="switch">
-                                <input type="checkbox" id="enter_self_capture_flag" class="rule-btn">
+                                <input type="checkbox" id="enter_trap" class="rule-btn">
                                 <span></span>
-                                <label for="enter_self_capture_flag">enter self capture</label>
+                                <label for="enter_trap">enter hostile</label>
                             </label>
                             <label class="switch">
-                                <input type="checkbox" checked id="corner_capture_flag" class="rule-btn">
+                                <input type="checkbox" checked id="hostile_towers" class="rule-btn">
                                 <span></span>
-                                <label for="corner_capture_flag">tower capture</label>
+                                <label for="hostile_towers">hostile towers</label>
                             </label>
                         </div>
 
@@ -62,7 +91,7 @@
 
                 </div>
 
-                <table id="moves">
+                <table id="moves-tbl">
                     <tbody>
                     </tbody>
                 </table>

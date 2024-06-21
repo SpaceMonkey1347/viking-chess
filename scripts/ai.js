@@ -1,13 +1,4 @@
 
-
-function rank_moves(side, board_ref) {
-    const moves = legal_moves(side, board_ref)
-    const pieces = Object.keys(moves.pieces)
-    // console.log(pieces)
-    for (const piece in moves.pieces) {
-    }
-}
-
 /**
  * @param {number} side
  * @param {number[]} board_ref
@@ -24,84 +15,275 @@ function rank_moves(side, board_ref) {
  * ally moves = +200 points each
  * enemy moves = -200 points each
  */
-function score_position(side, board_ref) {
+function score_position(board_ref=board, debug_flag=false) {
     let score = 0
     let white_count = 0
     let black_count = 0
-    let white_moves = 0
-    let black_moves = 0
-    let king_moves = 0
+    // let white_moves = 0
+    // let black_moves = 0
+    // let king_moves = 0
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             const square = encode_sqaure(row, col)
             const piece = board[square]
             // skip empty squares
-            if (piece == e) { continue }
-
-            const moves_len = piece_legal_moves(square, side, board_ref).length
+            if (piece == emp) { continue }
 
             // increment sides
 
-            if (piece == k) {
+            if (piece == kng) {
                 black_count++
-                black_moves += moves_len
-                king_moves++
-                continue
-            } else if (piece == a) {
+                // king_moves += piece_valid_move_count(square, black, board_ref)
+            } else if (piece == att) {
                 white_count++
-                white_moves += moves_len
-            } else if (piece == d) {
+                // white_moves += piece_valid_move_count(square, white, board_ref)
+            } else if (piece == def) {
                 black_count++
-                black_moves += moves_len
+                // black_moves += piece_valid_move_count(square, black, board_ref)
             }
         }
     }
     score += white_count * 5000
     score += black_count * -5000
-    score += white_moves * 5
-    score += black_moves * -5
-    score += king_moves * -10
+    // score += white_moves * 5
+    // score += black_moves * -5
+    // score += king_moves * -10
+    if (debug_flag) {
+        // console.log('score', score, 'white_count', white_count, 'black_count', black_count, 'white_moves', white_moves, 'black_moves', black_moves, 'king_moves', king_moves)
+        console.log('score_position()', 'score', score, 'white_count', white_count, 'black_count', black_count)
+    }
     return score
 }
 
+let plies_completed = 0
+let white_moves_completed = 0
+let black_moves_completed = 0
+let moves_pruned = 0
+let white_moves_pruned = 0
+let black_moves_pruned = 0
 
-function best_move(board_ref=board, depth=2, side=black, alpha=-Infinity, beta=Infinity) {
-    const moves = legal_moves_obj(side, board_ref)
+function best_move(board_ref=board, side=black) {
     let best_move
-    let best_score = side == white ? -Infinity : Infinity
-    // console.log('side', side, 'bestscore', best_score)
-    // const board_copy = JSON.parse(JSON.stringify(board_ref))
-    for (const piece in moves.pieces) {
-        for (const move in moves.pieces[piece].moves) {
-            const cur_move = moves.pieces[piece].moves[move]
 
-            const last_move = ai_make_move(Number(piece), cur_move, board_ref)
-            // console.table(emoji_table(board_ref))
-            const cur_score = minimax(board_ref, depth, Boolean(side), alpha, beta)
+    if (side == black) {
+        const moves = legal_moves(black, board_ref)
+        let best_score = Infinity
+        best_move = moves[0]
+        for (const move of moves) {
+            const [start_square, end_square] = decode_move(move)
+            const last_move = ai_make_move(start_square, end_square)
+            const val = minimax(board_ref, 2, true, -Infinity, Infinity)
+
+            // console.log('best_move()', 'best_score', best_score, 'cur_score', val, 'initial_score', score_position(board_ref, true))
+            // console.log(move)
+            // console.table(emoji_board(board_ref))
+
             ai_unmake_move(last_move, board_ref)
-            // console.log(last_move, cur_score)
+            if (val < best_score) {
+                best_score = val
+                best_move = move
+            }
+        }
+    } else {
+        const moves = legal_moves(white, board_ref)
+        let best_score = -Infinity
+        best_move = moves[0]
+        for (const move of moves) {
+            const [start_square, end_square] = decode_move(move)
+            const last_move = ai_make_move(start_square, end_square)
+            const val = minimax(board_ref, 2, false, -Infinity, Infinity)
 
-            // console.log('before', best_score, cur_score)
-            best_score = side == white ? Math.max(cur_score, best_score) : Math.min(cur_score, best_score)
-            // console.log('after max/min', best_score, cur_score)
-            if (best_score == cur_score) {
-                best_move = [Number(piece), cur_move]
-                // console.log('new best move', best_move)
+            // console.log('best_move()', 'best_score', best_score, 'cur_score', val, 'initial_score', score_position(board_ref, true))
+            // console.log(move)
+            // emoji_board(board_ref)
+
+            ai_unmake_move(last_move, board_ref)
+            if (val < best_score) {
+                best_score = val
+                best_move = move
             }
         }
     }
-
     return best_move
-
 }
 
+/**
+ * @param {number[]} board_ref 
+ * @param {number} depth 
+ * @param {boolean} maximizing 
+ * @param {number} alpha 
+ * @param {number} beta 
+ */
+function minimax2(board_ref, depth, maximizing, alpha, beta) {
+    const side = Number(maximizing)
+    const win = check_win(side, board_ref)
+    if (depth == 0 || win) {
+        if (win) { return Infinity * ((Number(maximizing) * 2) - 1) }
+        return score_position(board_ref)
+    }
+    const moves = legal_moves(side, board_ref)
+    plies_completed++
+    if (maximizing) {
+        let max_eval = -Infinity
+        for (const move of moves) {
+            const [start_square, end_square] = decode_move(move)
+            // the meat
+            const l_move = ai_make_move(start_square, end_square, board_ref)
+            const val = minimax(board_ref, depth - 1, false, alpha, beta)
+            ai_unmake_move(l_move, board_ref)
+            // max_eval = Math.max(max_eval, val)
+            if (val > max_eval) {
+                max_eval = val
+            }
+            // pruning
+            alpha = Math.max(alpha, val)
+            if (beta <= alpha) { 
+                moves_pruned++
+                white_moves_pruned++
+                break
+            }
+        }
+        white_moves_completed++
+        return max_eval
+        
+    } else {
+        let min_eval = Infinity
+        for (const move of moves) {
+            const [start_square, end_square] = decode_move(move)
+            // the meat
+            const l_move = ai_make_move(start_square, end_square, board_ref)
+            const val = minimax(board_ref, depth - 1, true, alpha, beta)
+            ai_unmake_move(l_move, board_ref)
+            // min_eval = Math.min(min_eval, val)
+            if (val < min_eval) {
+                min_eval = val
+            }
+            // pruning
+            beta = Math.min(beta, val)
+            if (beta <= alpha) {
+                moves_pruned++
+                black_moves_pruned++
+                break
+            }
+        }
+        black_moves_completed++
+        return min_eval
+    }
+}
+
+/**
+ * @param {number[]} board_ref 
+ * @param {number} depth 
+ * @param {boolean} maximizing 
+ * @param {number} alpha 
+ * @param {number} beta 
+ */
+function minimax(board_ref, depth, maximizing, alpha, beta) {
+    const side = Number(maximizing)
+    const win = check_win(side, board_ref)
+    if (depth == 0 || win) {
+        if (win) { return Infinity * ((Number(maximizing) * 2) - 1) }
+        return score_position(board_ref)
+    }
+    const moves = legal_moves(side, board_ref)
+    plies_completed++
+    if (maximizing) {
+        let max_eval = -Infinity
+        for (const move of moves) {
+            const [start_square, end_square] = decode_move(move)
+            // the meat
+            const l_move = ai_make_move(start_square, end_square, board_ref)
+            const val = minimax(board_ref, depth - 1, false, alpha, beta)
+            ai_unmake_move(l_move, board_ref)
+            // max_eval = Math.max(max_eval, val)
+            if (val > max_eval) {
+                max_eval = val
+            }
+            // pruning
+            alpha = Math.max(alpha, val)
+            if (beta <= alpha) { 
+                moves_pruned++
+                white_moves_pruned++
+                break
+            }
+        }
+        white_moves_completed++
+        return max_eval
+        
+    } else {
+        let min_eval = Infinity
+        for (const move of moves) {
+            const [start_square, end_square] = decode_move(move)
+            // the meat
+            const l_move = ai_make_move(start_square, end_square, board_ref)
+            const val = minimax(board_ref, depth - 1, true, alpha, beta)
+            ai_unmake_move(l_move, board_ref)
+            // min_eval = Math.min(min_eval, val)
+            if (val < min_eval) {
+                min_eval = val
+            }
+            // pruning
+            beta = Math.min(beta, val)
+            if (beta <= alpha) {
+                moves_pruned++
+                black_moves_pruned++
+                break
+            }
+        }
+        black_moves_completed++
+        return min_eval
+    }
+}
+
+/**
+ * @param {number[]} board_ref 
+ * @param {object} move 
+ */
+function ai_unmake_move(move, board_ref) {
+    board_ref[move.start] = move.piece
+    board_ref[move.end] = emp
+
+    for (const p in move.captures) {
+        board_ref[move.captures[p].square] = move.captures[p].piece
+    }
+}
+
+/**
+ * @param {number} start_square 
+ * @param {number} end_square 
+ * @param {number[]} [board_ref=board]
+ */
+function ai_make_move(start_square, end_square, board_ref=board) {
+    const move = {start: start_square, end: end_square}
+
+    const piece = board_ref[start_square]
+    move.piece = piece
+
+    board_ref[end_square] = piece
+    board_ref[start_square] = emp
+
+    const captures = get_captures(end_square)
+    move.captures = {}
+    for (const p in captures) {
+        move.captures[p] = {}
+        move.captures[p].square = captures[p]
+        move.captures[p].piece = board_ref[captures[p]]
+        board_ref[captures[p]] = emp
+    }
+    return move
+}
+/**
+ * @param {number[]} board_ref 
+ * @returns void
+ * @description prints board to console using emoji
+ */
 function emoji_board(board_ref) {
     const new_board = new Array(rows)
     const emoji_map = {
-        '0': '🟧',
-        '1': '⚪',
-        '2': '🔴',
-        '3': '👑',
+        [emp]: '🟧',
+        [att]: '⚪',
+        [def]: '🔴',
+        [kng]: '👑',
     }
     for (let row = 0; row < rows; row++) {
         new_board[row] = new Array(cols)
@@ -111,191 +293,188 @@ function emoji_board(board_ref) {
             new_board[row][col] = piece
         }
     }
-    return new_board
+    console.table(new_board)
 }
 
-function ai_unmake_move(move, board_ref) {
-    board_ref[move.start] = move.piece
-    board_ref[move.end] = e
+function get_game_state(board_ref, side) {
+    const state = {
+        white: {
+            piece_count: 0,
+            pieces: [],
+        },
+        black: {
+            piece_count: 0,
+            pieces: [],
+            king: {
+                square: null,
+                moves: [],
+            },
+        },
+        board: {
+            squares: [],
+        },
+        turn: side,
+    }
 
-    for (const p in move.captures) {
-        board_ref[move.captures[p].square] = move.captures[p].piece
+    for (const square in board_ref) {
+        const piece = board_ref[square]
+        const piece_side = piece == att ? "white" : "black"
+        const side_pieces = state[piece_side].pieces
+        side_pieces.push({
+            square: square,
+        })
+    }
+
+    return state
+}
+
+function get_square_state(square) {
+    const square_state = {
+        piece: emp,
+        piece_id: null,
+        white_trap: false,
+        black_trap: false,
     }
 }
 
-function ai_make_move(start_square, end_square, board_ref) {
-    let move = {start: start_square, end: end_square}
-
-    const piece = board_ref[start_square]
-    move.piece = piece
-
-    board_ref[end_square] = piece
-    board_ref[start_square] = e
-
-    const captures = get_captures(end_square)
-    move.captures = {}
-    for (const p in captures) {
-        move.captures[p] = {}
-        move.captures[p].square = captures[p]
-        move.captures[p].piece = board_ref[captures[p]]
-        board_ref[captures[p]] = e
-    }
-    return move
-}
-
-
-let move_counter = 0
-let white_moves = 0
-let black_moves = 0
-let moves_pruned = 0
-function minimax(board_ref, depth, maximizing, alpha, beta) {
-    const win = is_win(Number(maximizing), board_ref)
-    if (depth == 0 || win) {
-        return score_position(maximizing, board_ref)
-    }
-    // move_counter++
-    const moves = legal_moves(maximizing, board_ref)
-    const moves_len = moves.length
-    if (maximizing) {
-        // white_moves++
-        let max_eval = -Infinity
-        for (let move_index = 0; move_index < moves_len; move_index++) {
-            // const board_copy = JSON.parse(JSON.stringify(board_ref))
-            const [start_square, end_square] = decode_move(moves[move_index])
-            // the meat
-            const l_move = ai_make_move(start_square, end_square, board_ref)
-            const val = minimax(board_ref, depth - 1, false, alpha, beta)
-            ai_unmake_move(l_move, board_ref)
-            max_eval = Math.max(max_eval, val)
-            // pruning
-            alpha = Math.max(alpha, val)
-            if (beta <= alpha) { 
-                // moves_pruned++
-                break
-            }
-        }
-        return max_eval
-        
-    } else {
-        // black_moves++
-        let min_eval = Infinity
-        for (let move_index = 0; move_index < moves_len; move_index++) {
-            // const board_copy = JSON.parse(JSON.stringify(board_ref))
-            const [start_square, end_square] = decode_move(moves[move_index])
-            // the meat
-            const l_move = ai_make_move(start_square, end_square, board_ref)
-            const val = minimax(board_ref, depth - 1, true, alpha, beta)
-            ai_unmake_move(l_move, board_ref)
-            min_eval = Math.min(min_eval, val)
-            // pruning
-            beta = Math.min(beta, val)
-            if (beta <= alpha) {
-                // moves_pruned++
-                break
-            }
-        }
-        return min_eval
-    }
-}
-
-
-
+// piece interaction definitions
+// hostile: 
+// treat: can capture next move
 
 /**
+ * @param {number[]} [board_ref=board] 
  * @param {number} side 
- * @param {Array<number>} [board_ref=board] 
- * @returns
- * cache
- *     .pieces
- *         ...[piece]: number
- *             .moves
- *                 ...[move]: number
- *                     .captures
- *                         ...[capture]: number
- *     .captures
- *         ...[capture]: number
- *             pieces
- *                 ...[piece]: number
- * @example
- * var cache = move_cache(side)
- * var enemy = 9
- * // see if piece at square 12 can capture enemy on square 9
- * if (cache.piece[12].moves[20].captures[enemy]) {
- *     console.log("enemy can be captured by piece at position 12")
- * }
  */
-function move_cache(side=turn, board_ref=board) {
-    const ally_pieces  = side == white ? [a] : [d, k]
-    const enemy_pieces = side == white ? [d, k] : [a]
-    const cache = {}
+function game_state_init(board_ref = board, side = turn) {
 
-    // init piece data
-    cache.pieces = {}
-    // init capture data
-    cache.captures = {}
-
-    cache.ally_count = 0
-    cache.ally_move_count = 0
-
-    cache.enemy_count = 0
-    cache.enemy_move_count = 0
-
-    // loop through board
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            const square = encode_sqaure(row, col)
-
-            if (enemy_pieces.includes(board[square])) {
-                cache.enemy_count += 1
-                cache.enemy_move_count += piece_legal_moves(square, side^=1, board_ref).length
-            }
-            // loop through current player's pieces
-            if (ally_pieces.includes(board[square])) {
-
-                const piece_moves = piece_legal_moves(square, side, board_ref)
-                const piece_moves_len = piece_moves.length
-
-                cache.ally_move_count += piece_moves_len
-                cache.ally_count += 1
-
-                cache.pieces[square] = {}
-
-                if (piece_moves_len == 0) { continue }
-
-                // init piece moves
-                cache.pieces[square].moves = {}
-
-                // loop through piece's moves
-                for (let i = 0; i < piece_moves_len; i++) {
-
-                    const move = piece_moves[i]
-
-                    // add move to piece's moves
-                    cache.pieces[square].moves[move] = {}
-
-                    // add captures
-                    const captures = get_captures(piece_moves[i], side, board_ref)
-                    const captures_len = captures.length
-                    if (captures_len > 0) {
-                        // add piece move and captures to moves
-                        cache.pieces[square].moves[move].captures = captures
-
-                        // add capture to moves.captures
-                        for (let cap_index = 0; cap_index < captures_len; cap_index++) {
-                            const capture = captures[cap_index]
-                            if (!cache.captures[capture]) {
-                                // init capturable piece to captures
-                                cache.captures[capture] = {}
-                                cache.captures[capture].pieces = []
-                            }
-                            // add captor to captures
-                            cache.captures[capture].pieces.push(square)
-                        }
-                    }
-                }
-
-            }
-        }
+    const piece_state = {
+        piece: emp,
+        square: null,
+        row: null,
+        col: null,
+        index: null,
+        moves: {
+            row: new Array(rows).fill(true),
+            col: new Array(cols).fill(true),
+        },
+        // index or square?
+        nearest_pieces: {
+            top: null,
+            left: null,
+            right: null,
+            bottom: null,
+        },
+        // nearest_allies: {
+        //     top: null,
+        //     left: null,
+        //     right: null,
+        //     bottom: null,
+        // },
     }
-    return cache
+
+    const square_state = {
+        // piece_state.piece
+        piece: emp,
+        // state[side]
+        piece_side: null,
+        // state[side].pieces[index]
+        piece_index: null,
+        white_hostile: false,
+        black_hostile: false,
+    }
+
+    const board_state = new Array(size).fill(square_state)
+
+    const state = {
+        // side
+        white: {
+            // amount of pieces
+            piece_count: 0,
+            // amount of moves
+            move_total: 0,
+            // moves that have captures
+            treat_move_total: 0,
+            // captures in moves
+            treat_capture_total: 0,
+            // pieces: new Array(24).fill(piece_state),
+            pieces: [],
+        },
+        black: {
+            piece_count: 0,
+            move_total: 0,
+            treat_move_total: 0,
+            treat_capture_total: 0,
+            // pieces: new Array(13).fill(piece_state),
+            pieces: [],
+        },
+        boad: board_state,
+        turn: side,
+    }
+
+    for (let square = 0; square < size; square++) {
+
+        // TODO: hostile (adjacent to capturable enemies) and treats
+        // pieces that can access a given board square in board object
+
+        const piece = board_ref[square]
+        const side = piece == att ? white : black
+        const side_key = side == white ? "white" : "black"
+        const moves = piece_legal_moves(square)
+        const moves_len = moves.length
+
+        // all threats of piece
+        const treats = {}
+        let treats_move_len = 0
+        let treats_capture_len = 0
+        for (const move of moves) {
+            const move_captures = get_captures(move, side, board_ref)
+            const move_captures_len = move_captures.length
+            if (move_captures_len > 0) {
+                treats[move] = move_captures
+                treats_capture_len += move_captures_len
+                treats_move_len++
+            }
+
+        }
+
+        // update state
+
+        // state.board[square].piece = piece
+
+        if (piece == emp) { continue }
+
+        // state[side_key].piece_count++
+        // state[side_key].move_total += moves_len
+        // state[side_key].treat_move_total += treats_capture_len
+        // state[side_key].treat_capture_total += treats_move_len
+
+        // (state[side_key].pieces).push({
+        //     piece: piece,
+        //     square: square,
+        //     index: state[side_key].length,
+        // })
+
+
+        // state[side_key][square] = {
+        //     piece: piece,
+        //     moves_len: moves_len,
+        //     treats_move_len: treats_move_len,
+        //     treats_capture_len: treats_capture_len,
+        //     neighbours: neighbours,
+        //     moves: moves,
+        //     treats: treats,
+        // }
+
+    }
+    return state
+}
+
+function game_state_make_move(start_square, end_square, captures, state) {
+    state.turn ^= state.turn
+    return state
+}
+
+function game_state_unmake_move(start_square, end_square, captures, state) {
+    state.turn ^= state.turn
+    return state
 }
