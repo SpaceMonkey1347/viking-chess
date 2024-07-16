@@ -478,3 +478,4 @@ function game_state_unmake_move(start_square, end_square, captures, state) {
     state.turn ^= state.turn
     return state
 }
+

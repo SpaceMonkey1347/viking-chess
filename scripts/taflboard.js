@@ -268,7 +268,6 @@ function is_self_capture(square, enemy_pieces, dir_incr, board_ref) {
     return false
 }
 
-
 /**
  * is move legal
  * @param {number} start_square
