@@ -3,15 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title></title>
-        <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
-        <link href="./css/style.css" rel="stylesheet">
-        <!-- <script src="./scripts/taflboard.js" defer></script> -->
-        <script src="./scripts/taflboard.js" defer></script>
-        <script src="./scripts/ai.js" defer></script>
-        <script src="./scripts/render.js" defer></script>
-        <script src="./scripts/move_stack.js" defer></script>
-        <script src="./scripts/main.js" defer></script>
+        <title>Viking Chess</title>
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+        <script src="{{ url_for('static', filename='js/taflboard.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/ai.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/render.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/move_stack.js') }}" defer></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
     </head>
     <body>
         <nav>

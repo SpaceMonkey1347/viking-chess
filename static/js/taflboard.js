@@ -258,7 +258,7 @@ function is_path_obstructed(target_square, piece, board_ref = board) {
  * @param {number[]} board_ref 
  */
 function is_self_capture(square, enemy_pieces, dir_incr, board_ref) {
-    if (rule_flags.enter_hostile_flag) { return false }
+    if (rule_flags.enter_trap) { return false }
     if (board_ref[square] == kng) { return false }
     const piece_before = is_adjacent(square, square - dir_incr) ? board_ref[square - dir_incr] : emp
     const piece_after = is_adjacent(square, square + dir_incr) ? board_ref[square + dir_incr] : emp
@@ -366,7 +366,7 @@ function get_captures(end_square, side = turn, board_ref = board) {
         // take another step
         const next_square = step(cur_square, dir)
         const next_piece = board_ref[next_square]
-        if (rule_flags.hostile_tower_flag) {
+        if (rule_flags.hostile_towers) {
             if (corners.includes(next_square)) {
                 captures.push(cur_square)
                 continue
