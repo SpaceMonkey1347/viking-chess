@@ -15,7 +15,7 @@
  * ally moves = +200 points each
  * enemy moves = -200 points each
  */
-function score_position(board_ref=board, debug_flag=false) {
+function score_position(board_ref = board, debug_flag = false) {
     let score = 0
     let white_count = 0
     let black_count = 0
@@ -62,7 +62,7 @@ let moves_pruned = 0
 let white_moves_pruned = 0
 let black_moves_pruned = 0
 
-function best_move(board_ref=board, side=black) {
+function best_move(board_ref = board, side = black) {
     let best_move
 
     if (side == black) {
@@ -137,7 +137,7 @@ function minimax2(board_ref, depth, maximizing, alpha, beta) {
             }
             // pruning
             alpha = Math.max(alpha, val)
-            if (beta <= alpha) { 
+            if (beta <= alpha) {
                 moves_pruned++
                 white_moves_pruned++
                 break
@@ -145,7 +145,7 @@ function minimax2(board_ref, depth, maximizing, alpha, beta) {
         }
         white_moves_completed++
         return max_eval
-        
+
     } else {
         let min_eval = Infinity
         for (const move of moves) {
@@ -201,7 +201,7 @@ function minimax(board_ref, depth, maximizing, alpha, beta) {
             }
             // pruning
             alpha = Math.max(alpha, val)
-            if (beta <= alpha) { 
+            if (beta <= alpha) {
                 moves_pruned++
                 white_moves_pruned++
                 break
@@ -209,7 +209,7 @@ function minimax(board_ref, depth, maximizing, alpha, beta) {
         }
         white_moves_completed++
         return max_eval
-        
+
     } else {
         let min_eval = Infinity
         for (const move of moves) {
@@ -253,8 +253,8 @@ function ai_unmake_move(move, board_ref) {
  * @param {number} end_square 
  * @param {number[]} [board_ref=board]
  */
-function ai_make_move(start_square, end_square, board_ref=board) {
-    const move = {start: start_square, end: end_square}
+function ai_make_move(start_square, end_square, board_ref = board) {
+    const move = { start: start_square, end: end_square }
 
     const piece = board_ref[start_square]
     move.piece = piece

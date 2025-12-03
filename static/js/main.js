@@ -210,10 +210,12 @@ function init() {
 
     document.addEventListener('mouseup', doc_mouse_up)
 
-    document.querySelectorAll('.rule-btn').forEach(btn => { btn.onclick = (event) => {
-        rule_flags[event.currentTarget.id] = event.currentTarget.checked
-        console.log(rule_flags, rule_flags[event.currentTarget.id])
-    }})
+    document.querySelectorAll('.rule-btn').forEach(btn => {
+        btn.onclick = (event) => {
+            rule_flags[event.currentTarget.id] = event.currentTarget.checked
+            console.log(rule_flags, rule_flags[event.currentTarget.id])
+        }
+    })
 
     draw_board()
 }
