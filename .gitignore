@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+
+# Other
+node_modules
+package.json
+package-lock.json
+
+jsconfig.json
+
+scratch_pad/
+assets/showcase
+tests/
+notes.md
+
+flask_session/
+__pycache__
+
